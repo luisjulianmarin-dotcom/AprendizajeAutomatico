@@ -55,34 +55,6 @@ def cargar_datos():
 with st.spinner("Cargando dataset desde el repositorio UCI..."):
     df = cargar_datos()
 
-
-
-def consultar_statistical_report(url_a_revisar):
-    api_url = "https://checkurl.phishtank.com/checkurl/"
-    data = {
-        'url': url_a_revisar,
-        'format': 'json'
-    }
-    
-    try:
-        headers = {'User-Agent': 'phishing-detector-app'}
-        response = requests.post(api_url, data=data, headers=headers, timeout=5)
-        
-        if response.status_code == 200:
-            resultado = response.json()
-            in_database = resultado.get('results', {}).get('in_database', False)
-            verified = resultado.get('results', {}).get('verified', False)
-            
-            if in_database and verified:
-                return 0, "⚠️ El sitio está reportado en bases de datos de Phishing."
-            else:
-                return 1, "✅ El sitio no figura en reportes estadísticos previos."
-        else:
-            return 0.5, "ℹ️ No se pudo conectar con el servicio de reportes (valor por defecto: limpio)."
-            
-    except Exception as e:
-        return 0.5, f"Error en la consulta de reporte: {e}"
-
 # Función heurística para extraer características a partir de una URL
 def analizar_url(url):
     if not url.startswith(('http://', 'https://')):
@@ -326,9 +298,7 @@ elif menu == "Predicción por URL Directa":
             # Crear el DataFrame con el orden original exacto de las variables
             input_completo = {}
             for col in feature_columns:
-                input_completo[col] = valores_extraidos.get(col, 0.5)
-                st.write(type(valores_extraidos))
-                print(valores_extraidos)
+                input_completo[col] = valores_extraidos.get(col)
 
             df_input = pd.DataFrame([input_completo])[feature_columns]
             
