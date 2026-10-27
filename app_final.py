@@ -58,12 +58,20 @@ with st.spinner("Cargando dataset desde el repositorio UCI..."):
 
 @st.cache_data
 def cargar_base_datos_local(ruta_csv="URL_Phishing.csv"):
+    urls = set()
     try:
-        df = pd.read_csv(ruta_csv)
-        # Asegurarnos de limpiar espacios y convertir a minúsculas para una comparación exacta
-        return set(df['url'].astype(str).str.strip().str.lower())
+        with open(ruta_csv, 'r', encoding='utf-8') as f:
+            for linea in f:
+                url_limpia = linea.strip().lower()
+                if url_limpia and url_limpia != 'url':
+                    urls.add(url_limpia)
+        return urls
     except FileNotFoundError:
-        return set() # Retorna un conjunto vacío si el archivo no existe aún
+        # Si el archivo no existe en la nube de Streamlit, retorna un conjunto vacío sin romper la app
+        return set()
+    except Exception as e:
+        st.error(f"Error al leer el archivo local: {e}")
+        return set()
 
 def verificar_reporte_local(url_a_revisar, analisis):
     urls_maliciosas = cargar_base_datos_local()
