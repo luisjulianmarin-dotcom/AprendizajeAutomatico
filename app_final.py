@@ -204,7 +204,9 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-    url_input = st.text_input("Ingrese la dirección URL (ej: www.bancolombia.olimpia.co o http://paypal-secure-auth.net):", "https://www.google.com" , "http://103.119.17.126/?d6o")
+    st.markdown("http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net)
+    url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
+  
 
     # Selector de modelo
     opcion_modelo = st.selectbox("Algoritmo de Clasificación", ["Random Forest", "Red Neuronal"])
