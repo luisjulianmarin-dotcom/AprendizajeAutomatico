@@ -325,7 +325,7 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-    st.markdown("Ejemplos sospechosos: http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
+    st.markdown("Ejemplos sospechosos: http://103.119.17.126/?d6o, http://www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
     st.markdown("Ejemplos sospechosos: http://bancolombia.seguridad-actualizacion.co, https://sesja-1c4b-pkobiznes-firma.wabze.net/pl-PL")
 
     url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
