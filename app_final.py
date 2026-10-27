@@ -67,7 +67,6 @@ def cargar_base_datos_local(ruta_csv="URL_Phishing.csv"):
                     urls.add(url_limpia)
         return urls
     except FileNotFoundError:
-        # Si el archivo no existe en la nube de Streamlit, retorna un conjunto vacío sin romper la app
         return set()
     except Exception as e:
         st.error(f"Error al leer el archivo local: {e}")
@@ -79,10 +78,8 @@ def verificar_reporte_local(url_a_revisar, analisis):
     
     if url_limpia in urls_maliciosas:
         analisis['statistical_report'] = 0.0
-        st.warning("⚠️ ¡Alerta! El sitio se encuentra registrado en la base de datos local de páginas maliciosas.")
     else:
         analisis['statistical_report'] = 1.0
-        st.success("✅ El sitio no figura en los reportes estadísticos locales.")
     return analisis
 
 # Función heurística para extraer características a partir de una URL
@@ -99,6 +96,7 @@ def analizar_url(url):
     
     # 30. statistical_report (Se revisa primero esta variable para afectar las otras del modelo)
     analisis = verificar_reporte_local(url, analisis)
+    
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 0.5
