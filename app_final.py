@@ -95,7 +95,7 @@ def analizar_url(url):
     analisis = {}
     
     # 30. statistical_report (Se revisa primero esta variable para afectar las otras del modelo)
-    analisis = verificar_reporte_local(url, analisis)
+    analisis['statistical_report'] = verificar_reporte_local(url, analisis)
     
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
