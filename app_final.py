@@ -217,6 +217,8 @@ elif menu == "Predicción por URL Directa":
         else:
             # Cargar modelos y mapeos
             rf_model = joblib.load("modelo_rf.joblib")
+            rf_model_opt = joblib.load("modelo_rf_optimizado.joblib")
+            
             nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
             feature_columns = joblib.load("columnas_features.joblib")
 
@@ -254,8 +256,8 @@ elif menu == "Predicción por URL Directa":
 
             # Predecir
             if opcion_modelo == "Random Forest":
-                prediccion = rf_model.predict(df_input)[0]
-                probabilidad = rf_model.predict_proba(df_input).max()
+                prediccion = rf_model_opt.predict(df_input)[0]
+                probabilidad = rf_model_opt.predict_proba(df_input).max()
             else:
                 prob_nn = nn_optimized.predict(df_input)[0][0]
                 prediccion = 1.0 if prob_nn > 0.5 else 0.0
