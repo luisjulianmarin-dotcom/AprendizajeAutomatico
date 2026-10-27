@@ -126,7 +126,10 @@ def analizar_url(url):
       analisis['double_slash_redirecting'] = 0.0 if url.rfind('//') > 2 else 1.0
 
     # 6. prefix_suffix (Guión '-' en dominio)
-    analisis['prefix_suffix'] = 0.0 if '-' in domain else 0.5
+    if analisis['statistical_report'] != 1.0:
+      analisis['double_slash_redirecting'] = 0.0
+    else:
+      analisis['prefix_suffix'] = 0.0 if '-' in domain else 0.5
 
     # 7. having_sub_domain (Cantidad de puntos en el dominio)
     dots = domain.count('.')
@@ -141,13 +144,14 @@ def analizar_url(url):
           analisis['having_sub_domain'] = 0.0  # Sospechoso
 
     # 8. sslfinal_state
-    if analisis['statistical_report'] != 1.0:
-      analisis['sslfinal_state'] = 0.5
-    else:
-      if url_parseada.scheme == 'https':
+    if url_parseada.scheme == 'https':
+        if analisis['statistical_report'] != 1.0:
           analisis['sslfinal_state'] = 1.0
-      else:
-          analisis['sslfinal_state'] = 0.0
+        else:
+          analisis['sslfinal_state'] = 0.5
+    else:
+        analisis['sslfinal_state'] = 0.0
+      
 
     # 9. domain_registration_length
     if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
