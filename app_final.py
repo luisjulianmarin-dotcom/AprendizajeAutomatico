@@ -336,10 +336,11 @@ elif menu == "Predicción por URL Directa":
             # Predecir
             if opcion_modelo == "Random Forest":
                 prediccion = rf_model.predict(df_input)[0]
-                probabilidad = rf_model.predict_proba(df_input).max()
+                #probabilidad = rf_model.predict_proba(df_input).max()
+                probabilidad = rf_model.predict_proba(df_input)
             else:
                 prob_nn = nn_optimized.predict(df_input)[0][0]
-                prediccion = 1.0 if prob_nn > 0.5 else 0.0
+                prediccion = 1.0 if prob_nn > 0.9 else 0.0
                 probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
             # Mostrar Diagnóstico
