@@ -8,6 +8,8 @@ from ucimlrepo import fetch_ucirepo
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import requests
+import json
 
 # Configuración de la página
 st.set_page_config(
@@ -52,6 +54,34 @@ def cargar_datos():
 # Carga de datos con indicador de progreso
 with st.spinner("Cargando dataset desde el repositorio UCI..."):
     df = cargar_datos()
+
+
+
+def consultar_statistical_report(url_a_revisar):
+    api_url = "https://checkurl.phishtank.com/checkurl/"
+    data = {
+        'url': url_a_revisar,
+        'format': 'json'
+    }
+    
+    try:
+        headers = {'User-Agent': 'phishing-detector-app'}
+        response = requests.post(api_url, data=data, headers=headers, timeout=5)
+        
+        if response.status_code == 200:
+            resultado = response.json()
+            in_database = resultado.get('results', {}).get('in_database', False)
+            verified = resultado.get('results', {}).get('verified', False)
+            
+            if in_database and verified:
+                return 0, "⚠️ El sitio está reportado en bases de datos de Phishing."
+            else:
+                return 1, "✅ El sitio no figura en reportes estadísticos previos."
+        else:
+            return 0.5, "ℹ️ No se pudo conectar con el servicio de reportes (valor por defecto: limpio)."
+            
+    except Exception as e:
+        return 0.5, f"Error en la consulta de reporte: {e}"
 
 # Función heurística para extraer características a partir de una URL
 def analizar_url(url):
@@ -201,13 +231,7 @@ def analizar_url(url):
         analisis['links_pointing_to_page'] = 1.0
 
     # 30. statistical_report
-    marcas_palabras = ['paypal', 'bank', 'secure', 'login', 'signin', 'verification', 'update', 'free', 'bonus', 'gift','log','regalo','amigo','rifa','bono']
-    if any(p in domain.lower() or p in path.lower() for p in marcas_palabras):
-        analisis['statistical_report'] = 0.0
-    else:
-        analisis['statistical_report'] = 1.0
-
-    return analisis
+    analisis['statistical_report'] = consultar_statistical_report(url_parseada)
 
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
@@ -256,7 +280,9 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-    st.markdown("Ejemplos sospechosos o legítimos: http://103.119.17.126/?d6o, http://https://103.119.17.126-lock-/?d6o_logi.php, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
+    st.markdown("Ejemplos sospechosos: http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
+    st.markdown("Ejemplos sospechosos: http://bancolombia.seguridad-actualizacion.co, https://sesja-1c4b-pkobiznes-firma.wabze.net/pl-PL") 
+    
     url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
 
     # Selector de modelo
@@ -280,7 +306,7 @@ elif menu == "Predicción por URL Directa":
                 input_completo[col] = valores_extraidos.get(col, 0.5)
 
             df_input = pd.DataFrame([input_completo])[feature_columns]
-
+            
             # Mostrar visualmente las 30 variables estimadas divididas en tres columnas
             st.info("🔗 Características extraídas de la URL por el extractor heurístico integrado (30 Variables Predictoras):")
             
