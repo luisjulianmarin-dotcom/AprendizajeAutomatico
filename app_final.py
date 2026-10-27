@@ -72,16 +72,6 @@ def cargar_base_datos_local(ruta_csv="URL_Phishing.csv"):
         st.error(f"Error al leer el archivo local: {e}")
         return set()
 
-def verificar_reporte_local(url_a_revisar, analisis):
-    urls_maliciosas = cargar_base_datos_local()
-    url_limpia = url_a_revisar.strip().lower()
-    
-    if url_limpia in urls_maliciosas:
-        analisis['statistical_report'] = 0.0
-    else:
-        analisis['statistical_report'] = 1.0
-    return analisis
-
 # Función heurística para extraer características a partir de una URL
 def analizar_url(url):
     if not url.startswith(('http://', 'https://')):
@@ -95,8 +85,14 @@ def analizar_url(url):
     analisis = {}
     
     # 30. statistical_report (Se revisa primero esta variable para afectar las otras del modelo)
-    analisis['statistical_report'] = verificar_reporte_local(url, analisis)
+    urls_maliciosas = cargar_base_datos_local()
+    url_limpia = url.strip().lower()
     
+    if url_limpia in urls_maliciosas:
+        analisis['statistical_report'] = 0.0
+    else:
+        analisis['statistical_report'] = 1.0
+        
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 0.5
@@ -279,9 +275,9 @@ def analizar_url(url):
         analisis['links_pointing_to_page'] = 0.5
     else:
         analisis['links_pointing_to_page'] = 1.0
-
     
-
+    return analisis
+    
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
 menu = st.sidebar.selectbox(
