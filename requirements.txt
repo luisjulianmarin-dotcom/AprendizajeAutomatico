@@ -5,3 +5,4 @@ numpy
 seaborn
 ucimlrepo
 joblib
+tensorflow 
