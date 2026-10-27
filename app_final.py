@@ -158,16 +158,16 @@ def analizar_url(url):
     analisis['redirect'] = 0.0 if url.count('//') > 1 else 1.0
 
     # 20. on_mouseover
-    analisis['on_mouseover'] = 0.5
+    analisis['on_mouseover'] = 0.0
 
     # 21. rightclick
-    analisis['rightclick'] = 0.5
+    analisis['rightclick'] = 0.0
 
     # 22. popupwindow
-    analisis['popupwindow'] = 0.5
+    analisis['popupwindow'] = 0.0
 
     # 23. iframe
-    analisis['iframe'] = 0.5
+    analisis['iframe'] = 0.0
 
     # 24. age_of_domain
     if len(domain) > 4 and url_parseada.scheme == 'https':
@@ -176,7 +176,7 @@ def analizar_url(url):
         analisis['age_of_domain'] = 0.0
 
     # 25. dnsrecord
-    analisis['dnsrecord'] = 0.5
+    analisis['dnsrecord'] = 0.0
 
     # 26. web_traffic
     dominios_populares = ['google.com', 'facebook.com', 'youtube.com', 'twitter.com', 'instagram.com', 'netflix.com', 'amazon.com', 'microsoft.com', 'github.com']
