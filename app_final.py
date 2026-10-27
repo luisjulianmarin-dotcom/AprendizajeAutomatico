@@ -205,28 +205,30 @@ def analizar_url(url):
     # 30. statistical_report
     api_url = "https://checkurl.phishtank.com/checkurl/"
     data = {
-        'url': url_parseada,
+        'url': url,  # Corregido de url_parseada (un objeto) a url (string)
         'format': 'json'
     }
-    
+
     try:
         headers = {'User-Agent': 'phishing-detector-app'}
         response = requests.post(api_url, data=data, headers=headers, timeout=5)
-        
+
         if response.status_code == 200:
             resultado = response.json()
             in_database = resultado.get('results', {}).get('in_database', False)
             verified = resultado.get('results', {}).get('verified', False)
-            
+
             if in_database and verified:
-                analisis['statistical_report'] = 0
+                analisis['statistical_report'] = 0.0
             else:
-                analisis['statistical_report'] = 1
+                analisis['statistical_report'] = 1.0
         else:
-            analisis['statistical_report']= 0.5
-            
+            analisis['statistical_report'] = 0.5
+
     except Exception as e:
-        analisis['statistical_report']= 0.5
+        analisis['statistical_report'] = 0.5
+        
+    return analisis  # Corregido: Se debe retornar obligatoriamente el diccionario al final
 
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
@@ -276,8 +278,8 @@ elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
     st.markdown("Ejemplos sospechosos: http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
-    st.markdown("Ejemplos sospechosos: http://bancolombia.seguridad-actualizacion.co, https://sesja-1c4b-pkobiznes-firma.wabze.net/pl-PL") 
-    
+    st.markdown("Ejemplos sospechosos: http://bancolombia.seguridad-actualizacion.co, https://sesja-1c4b-pkobiznes-firma.wabze.net/pl-PL")
+
     url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
 
     # Selector de modelo
@@ -298,16 +300,16 @@ elif menu == "Predicción por URL Directa":
             # Crear el DataFrame con el orden original exacto de las variables
             input_completo = {}
             for col in feature_columns:
-                input_completo[col] = valores_extraidos.get(col)
+                input_completo[col] = valores_extraidos.get(col, 0.5)
 
             df_input = pd.DataFrame([input_completo])[feature_columns]
-            
+
             # Mostrar visualmente las 30 variables estimadas divididas en tres columnas
             st.info("🔗 Características extraídas de la URL por el extractor heurístico integrado (30 Variables Predictoras):")
-            
+
             # Crear tres columnas en Streamlit
             col1, col2, col3 = st.columns(3)
-            
+
             # Dividir la lista de las 30 variables en tres grupos de 10 de manera equitativa
             grupo_1 = feature_columns[:10]
             grupo_2 = feature_columns[10:20]
@@ -397,7 +399,7 @@ elif menu == "Vista de Modelos":
             modelo = rf_model
             prediccion = modelo.predict(df_input)[0]
             probabilidad = modelo.predict_proba(df_input).max()
-        else:
+        else: 
             # Para la Red Neuronal
             prob_nn = nn_optimized.predict(df_input)[0][0]
             prediccion = 1.0 if prob_nn > 0.90 else 0.0
