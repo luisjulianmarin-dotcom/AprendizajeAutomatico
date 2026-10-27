@@ -260,6 +260,10 @@ elif menu == "Predicción por URL Directa":
                 prediccion = 1.0 if prob_nn > 0.5 else 0.0
                 probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
-            # Mostrar Diagnóstico
-            if prediccion == 1.0:
-                st.success(f
+        # Mostrar Diagnóstico # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
+        if prediccion == 1.0:
+            st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
+        else:
+            st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
+
+        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
