@@ -8,3 +8,5 @@ joblib
 tensorflow
 scikit-learn
 urlparse
+re
+fetch_ucirepo
