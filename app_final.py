@@ -18,6 +18,10 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+**Trabajo efectuado por:** - Mayra Alejandra Castañeda 
+                           - Luis Julián Marin Noreña
+""")
 st.title("🛡️ Detección de Sitios Web de Phishing")
 st.markdown("""
 **Descripción del problema:** Esta aplicación utiliza modelos de Machine Learning para clasificar si un sitio web es legítimo o si representa una amenaza de *phishing* basándose en características de su URL y estructura técnica.
