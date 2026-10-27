@@ -268,7 +268,7 @@ elif menu == "Predicción por URL Directa":
 
         st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
 
-  elif menu == "Vista de Modelos":
+ elif menu == "Vista de Modelos":
     # Cargar modelos y columnas
     rf_model = joblib.load("modelo_rf.joblib")
     nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
@@ -328,4 +328,4 @@ elif menu == "Predicción por URL Directa":
         else:
             st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
 
-        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
+        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%") 
