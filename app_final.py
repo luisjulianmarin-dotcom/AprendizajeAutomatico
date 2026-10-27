@@ -69,7 +69,7 @@ def analizar_url(url):
 
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 1.0
+    analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 0.5
 
     # 2. url_length
     longitud = len(url)
@@ -81,26 +81,29 @@ def analizar_url(url):
         analisis['url_length'] = 0.0
 
     # 3. shortining_service
-    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly','logi.php','logi.html']
-    analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 1.0
+    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly','logi.php','logi.html','d6o']
+    analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 0.5
 
     # 4. having_at_symbol
     analisis['having_at_symbol'] = 0.0 if '@' in url else 1.0
 
     # 5. double_slash_redirecting
-    analisis['double_slash_redirecting'] = 0.0 if url.rfind('//') > 1 else 1.0
+    analisis['double_slash_redirecting'] = 0.0 if url.rfind('//') > 2 else 1.0
 
     # 6. prefix_suffix (Guión '-' en dominio)
-    analisis['prefix_suffix'] = 0.0 if '-' in domain else 1.0
+    analisis['prefix_suffix'] = 0.0 if '-' in domain else 0.5
 
     # 7. having_sub_domain (Cantidad de puntos en el dominio)
     dots = domain.count('.')
-    if dots <= 1:
-        analisis['having_sub_domain'] = 1.0  # Seguro
-    elif dots == 2:
-        analisis['having_sub_domain'] = 0.5  # Moderado
+    if ip_pattern.search(domain):
+      analisis['having_sub_domain'] = 0.0  # Sospechoso
     else:
-        analisis['having_sub_domain'] = 0.0  # Sospechoso
+      if dots <= 2:
+          analisis['having_sub_domain'] = 1.0  # Seguro
+      elif dots == 3:
+          analisis['having_sub_domain'] = 0.5  # Moderado
+      else:
+          analisis['having_sub_domain'] = 0.0  # Sospechoso
 
     # 8. sslfinal_state
     if url_parseada.scheme == 'https':
@@ -109,20 +112,29 @@ def analizar_url(url):
         analisis['sslfinal_state'] = 0.0
 
     # 9. domain_registration_length
-    if url_parseada.scheme == 'https' and len(domain) > 4:
-         analisis['domain_registration_length'] = 1.0
+    if ip_pattern.search(domain):
+      analisis['domain_registration_length'] = 0.0
     else:
-         analisis['domain_registration_length'] = 0.0
+      if url_parseada.scheme == 'https' and len(domain) > 4:
+          analisis['domain_registration_length'] = 1.0
+      else:
+          analisis['domain_registration_length'] = 0.0
 
     # 10. favicon
     analisis['favicon'] = 1.0 if url_parseada.scheme == 'https' else 0.0
 
     # 11. port
     puertos_sospechosos = [':8080', ':8443', ':3000', ':8000',':80']
-    analisis['port'] = 0.0 if any(port in domain for port in puertos_sospechosos) else 1.0
+    if ip_pattern.search(domain):
+      analisis['port'] = 0.0
+    else:
+      analisis['port'] = 0.0 if any(port in domain for port in puertos_sospechosos) else 1.0
 
     # 12. https_token
-    analisis['https_token'] = 0.0 if 'https' in domain else 1.0
+    if ip_pattern.search(domain):
+      analisis['https_token'] = 0.0
+    else:
+      analisis['https_token'] = 0.0 if 'https' in domain else 1.0
 
     # 13. request_url
     if 'wp-content' in url or 'assets' in url or 'uploads' in url:
@@ -131,10 +143,13 @@ def analizar_url(url):
         analisis['request_url'] = 1.0
 
     # 14. url_of_anchor
-    if '#' in url or 'javascript' in url.lower() or 'void' in url.lower():
-        analisis['url_of_anchor'] = 0.0
+    if ip_pattern.search(domain):
+      analisis['url_of_anchor'] = 0.0
     else:
-        analisis['url_of_anchor'] = 1.0
+      if '#' in url or 'javascript' in url.lower() or 'void' in url.lower():
+          analisis['url_of_anchor'] = 0.0
+      else:
+          analisis['url_of_anchor'] = 1.0
 
     # 15. links_in_tags
     if '?' in url or '&' in url or len(query) > 0:
@@ -149,10 +164,16 @@ def analizar_url(url):
         analisis['sfh'] = 0.5
 
     # 17. submitting_to_email
-    analisis['submitting_to_email'] = 0.0 if 'mail' in url or 'mailto' in url else 0.5
+    if ip_pattern.search(domain):
+      analisis['submitting_to_email'] = 0.0
+    else:
+      analisis['submitting_to_email'] = 0.0 if 'mail' in url or 'mailto' in url else 0.5
 
     # 18. abnormal_url
-    analisis['abnormal_url'] = 0.5 if domain in url else 0.0
+    if ip_pattern.search(domain):
+      analisis['abnormal_url']  = 0.0
+    else:
+      analisis['abnormal_url'] = 0.5 if domain in url else 0.0
 
     # 19. redirect
     analisis['redirect'] = 0.0 if url.count('//') > 1 else 1.0
@@ -170,20 +191,26 @@ def analizar_url(url):
     analisis['iframe'] = 0.0
 
     # 24. age_of_domain
-    if len(domain) > 4 and url_parseada.scheme == 'https':
-        analisis['age_of_domain'] = 0.5
+    if ip_pattern.search(domain):
+      analisis['age_of_domain']  = 0.0
     else:
-        analisis['age_of_domain'] = 0.0
+      if len(domain) > 4 and url_parseada.scheme == 'https':
+          analisis['age_of_domain'] = 0.5
+      else:
+          analisis['age_of_domain'] = 0.0
 
     # 25. dnsrecord
     analisis['dnsrecord'] = 0.0
 
     # 26. web_traffic
     dominios_populares = ['google.com', 'facebook.com', 'youtube.com', 'twitter.com', 'instagram.com', 'netflix.com', 'amazon.com', 'microsoft.com', 'github.com']
-    if any(dom in domain.lower() for dom in dominios_populares):
-        analisis['web_traffic'] = 1.0
+    if ip_pattern.search(domain):
+      analisis['web_traffic']  = 0.0
     else:
-        analisis['web_traffic'] = 0.0
+      if any(dom in domain.lower() for dom in dominios_populares):
+          analisis['web_traffic'] = 1.0
+      else:
+          analisis['web_traffic'] = 0.0
 
     # 27. page_rank
     if any(dom in domain.lower() for dom in dominios_populares):
@@ -192,7 +219,7 @@ def analizar_url(url):
         analisis['page_rank'] = 0.0
 
     # 28. google_index
-    analisis['google_index'] = 1.0
+    analisis['google_index'] = 0.0
 
     # 29. links_pointing_to_page
     if len(path) > 30:
@@ -226,7 +253,7 @@ def analizar_url(url):
             analisis['statistical_report'] = 0.5
 
     except Exception as e:
-        analisis['statistical_report'] = 0.5
+        analisis['statistical_report'] = 0.0
 
     return analisis
 
@@ -336,8 +363,7 @@ elif menu == "Predicción por URL Directa":
             # Predecir
             if opcion_modelo == "Random Forest":
                 prediccion = rf_model.predict(df_input)[0]
-                #probabilidad = rf_model.predict_proba(df_input).max()
-                probabilidad = rf_model.predict_proba(df_input)
+                probabilidad = rf_model.predict_proba(df_input).max()
             else:
                 prob_nn = nn_optimized.predict(df_input)[0][0]
                 prediccion = 1.0 if prob_nn > 0.9 else 0.0
@@ -396,7 +422,7 @@ elif menu == "Vista de Modelos":
     # Completar el resto de variables con el valor neutral por defecto (0.5)
     for col in feature_columns:
         if col not in input_data:
-            input_data[col] = 0.5
+            input_data[col] = 0.0
 
     # Botón de predicción
     if st.button("Predecir Sitio Web"):
