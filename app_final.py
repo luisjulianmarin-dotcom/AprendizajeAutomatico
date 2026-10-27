@@ -154,7 +154,7 @@ if menu == "Predicción por URL Directa":
             df_input = pd.DataFrame([input_completo])[feature_columns]
             
             # Mostrar visualmente las variables estimadas
-            st.info("🔗 **Características de la URL extraídas automáticamente por la heurística:**")
+            st.info("🔗 Características de la URL extraídas automáticamente por la heurística:")
             col_izq, col_der = st.columns(2)
             with col_izq:
                 st.write(f"- **Tiene Dirección IP:** {'Sí (0.0)' if valores_extraidos['having_ip_address'] == 0.0 else 'No (1.0)'}")
@@ -182,4 +182,4 @@ if menu == "Predicción por URL Directa":
             else:
                 st.error(f"🚨 **Resultado:** ¡Alerta! Es un sitio web potencial de **Phishing** (Modelo: {opcion_modelo})")
                 
-            st.info(f
+            st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
