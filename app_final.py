@@ -367,7 +367,7 @@ elif menu == "Vista de Modelos":
         else:
             # Para la Red Neuronal
             prob_nn = nn_optimized.predict(df_input)[0][0]
-            prediccion = 1.0 if prob_nn > 0.5 else 0.0
+            prediccion = 1.0 if prob_nn > 0.90 else 0.0
             probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
         # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
