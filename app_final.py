@@ -204,8 +204,8 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-
-    url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
+    url_input = st.text_input("Ingrese la dirección URL (ej: www.bancolombia.olimpia.co o http://paypal-secure-auth.net):", "https://www.google.com" , "http://103.119.17.126/?d6o")
+  
 
     # Selector de modelo
     opcion_modelo = st.selectbox("Algoritmo de Clasificación", ["Random Forest", "Red Neuronal"])
@@ -261,6 +261,68 @@ elif menu == "Predicción por URL Directa":
                 probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
         # Mostrar Diagnóstico # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
+        if prediccion == 1.0:
+            st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
+        else:
+            st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
+
+        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
+
+  elif menu == "Vista de Modelos":
+    # Cargar modelos y columnas
+    rf_model = joblib.load("modelo_rf.joblib")
+    nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
+    feature_columns = joblib.load("columnas_features.joblib")
+
+    st.title("Detección de Sitios Web de Phishing")
+    st.markdown("""
+    **Descripción del problema:** Esta aplicación utiliza modelos de Machine Learning para clasificar si un sitio web es legítimo o si representa una amenaza de *phishing* basándose en características de su URL y estructura técnica.
+    **Fuente del dataset:** [UCI Machine Learning Repository - Phishing Websites](https://archive.ics.uci.edu/dataset/327)
+    """)
+
+    # Selector de modelo con nombres reales
+    opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
+
+    st.subheader("Ingrese las características de la URL / Sitio Web")
+
+    # Crear entradas dinámicas para las características
+    input_data = {}
+    col1, col2 = st.columns(2)
+
+    with col1:
+        input_data['having_ip_address'] = st.selectbox("¿Tiene dirección IP en la URL?", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['url_length'] = st.selectbox("Longitud de la URL", [1.0, 0.5, 0.0], format_func=lambda x: "Larga (0.0)" if x==0.0 else ("Moderada (0.5)" if x==0.5 else "Corta (1.0)"))
+        input_data['shortining_service'] = st.selectbox("Usa acortador de URL", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['having_at_symbol'] = st.selectbox("Presencia del símbolo '@'", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+
+    with col2:
+        input_data['double_slash_redirecting'] = st.selectbox("Redirección con doble barra '//'", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['prefix_suffix'] = st.selectbox("Uso de guion (-) en dominio", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['having_sub_domain'] = st.selectbox("Cantidad de subdominios", [1.0, 0.5, 0.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
+        input_data['sslfinal_state'] = st.selectbox("Estado del certificado SSL", [0.0, 0.5, 1.0], format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)"))
+
+    # Completar las características restantes con valores neutrales (0.5 o 0.0)
+    for col in feature_columns:
+        if col not in input_data:
+            input_data[col] = 0.5
+
+    # Botón de predicción
+    if st.button("Predecir Sitio Web"):
+        # Convertir a DataFrame manteniendo estrictamente el orden original de entrenamiento
+        df_input = pd.DataFrame([input_data])[feature_columns]
+
+        # Seleccionar modelo
+        if opcion_modelo == "Random Forest":
+            modelo = rf_model
+            prediccion = modelo.predict(df_input)[0]
+            probabilidad = modelo.predict_proba(df_input).max()
+        else:
+            # Para la Red Neuronal
+            prob_nn = nn_optimized.predict(df_input)[0][0]
+            prediccion = 1.0 if prob_nn > 0.5 else 0.0
+            probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
+
+        # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
         if prediccion == 1.0:
             st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
         else:
