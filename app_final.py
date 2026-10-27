@@ -95,7 +95,10 @@ def analizar_url(url):
         
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 0.5
+    if analisis['statistical_report'] != 1.0:
+      analisis['having_ip_address'] = 0.5
+    else:
+      analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 1.0
 
     # 2. url_length
     longitud = len(url)
