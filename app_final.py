@@ -100,22 +100,6 @@ elif menu == "Visualizaciones":
         st.pyplot(fig_pair.fig)
 
 
-    st.subheader("📈 Matriz de Confusión")
-    if st.checkbox("Generar la Matriz de Confusión (puede tardar unos segundos)"):
-        # Asegúrate de tener tus valores reales y predichos definidos previamente:
-        # y_pred = rf_model.predict(X_test)
-        
-        cm = confusion_matrix(y_true, y_pred)
-        
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, ax=ax)
-        ax.set_xlabel('Predicción')
-        ax.set_ylabel('Valor Real')
-        ax.set_title('Matriz de Confusión')
-        
-        # Mostrar el gráfico correctamente en Streamlit
-        st.pyplot(fig)
-
 elif menu == "Vista de Modelos":
     # Cargar modelos y columnas
     rf_model = joblib.load("modelo_rf.joblib")
