@@ -231,7 +231,30 @@ def analizar_url(url):
         analisis['links_pointing_to_page'] = 1.0
 
     # 30. statistical_report
-    analisis['statistical_report'] = consultar_statistical_report(url_parseada)
+    api_url = "https://checkurl.phishtank.com/checkurl/"
+    data = {
+        'url': url_parseada,
+        'format': 'json'
+    }
+    
+    try:
+        headers = {'User-Agent': 'phishing-detector-app'}
+        response = requests.post(api_url, data=data, headers=headers, timeout=5)
+        
+        if response.status_code == 200:
+            resultado = response.json()
+            in_database = resultado.get('results', {}).get('in_database', False)
+            verified = resultado.get('results', {}).get('verified', False)
+            
+            if in_database and verified:
+                analisis['statistical_report'] = 0
+            else:
+                analisis['statistical_report'] = 1
+        else:
+            analisis['statistical_report']= 0.5
+            
+    except Exception as e:
+        analisis['statistical_report']= 0.5
 
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
