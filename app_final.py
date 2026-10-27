@@ -62,13 +62,14 @@ def analizar_url(url):
 
     domain = url_parseada.netloc
     path = url_parseada.path
+    query = url_parseada.query
     analisis = {}
 
-    # 1. IP Address en la URL
+    # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 1.0
 
-    # 2. URL Length
+    # 2. url_length
     longitud = len(url)
     if longitud < 54:
         analisis['url_length'] = 1.0
@@ -77,11 +78,11 @@ def analizar_url(url):
     else:
         analisis['url_length'] = 0.0
 
-    # 3. Shortining Service
-    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd']
+    # 3. shortining_service
+    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly']
     analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 1.0
 
-    # 4. having_At_Symbol
+    # 4. having_at_symbol
     analisis['having_at_symbol'] = 0.0 if '@' in url else 1.0
 
     # 5. double_slash_redirecting
@@ -97,63 +98,114 @@ def analizar_url(url):
     elif dots == 2:
         analisis['having_sub_domain'] = 0.5  # Moderado
     else:
-        analisis['having_sub_domain'] = 0.0  # Sospechoso / Múltiples
+        analisis['having_sub_domain'] = 0.0  # Sospechoso
 
-    # 8. sslfinal_state (Si utiliza https seguro)
+    # 8. sslfinal_state
     if url_parseada.scheme == 'https':
         analisis['sslfinal_state'] = 1.0
     else:
         analisis['sslfinal_state'] = 0.0
 
-    # 9. url_of_anchor
-    # Las URLs de phishing suelen tener enlaces internos o vacíos (como '#', 'javascript:void(0)').
-    if '#' in url or 'javascript' in url.lower():
+    # 9. domain_registration_length
+    if url_parseada.scheme == 'https' and len(domain) > 12:
+         analisis['domain_registration_length'] = 1.0
+    else:
+         analisis['domain_registration_length'] = 0.0
+
+    # 10. favicon
+    analisis['favicon'] = 1.0 if url_parseada.scheme == 'https' else 0.0
+
+    # 11. port
+    puertos_sospechosos = [':8080', ':8443', ':3000', ':8000']
+    analisis['port'] = 0.0 if any(port in domain for port in puertos_sospechosos) else 1.0
+
+    # 12. https_token
+    analisis['https_token'] = 0.0 if 'https' in domain else 1.0
+
+    # 13. request_url
+    if 'wp-content' in url or 'assets' in url or 'uploads' in url:
+        analisis['request_url'] = 0.5
+    else:
+        analisis['request_url'] = 1.0
+
+    # 14. url_of_anchor
+    if '#' in url or 'javascript' in url.lower() or 'void' in url.lower():
         analisis['url_of_anchor'] = 0.0
     else:
         analisis['url_of_anchor'] = 1.0
 
-    # 10. web_traffic
-    # Sitios populares como google, facebook, etc., tienen mucho tráfico. Dominios extraños se asumen de bajo tráfico.
-    dominios_populares = ['google.com', 'facebook.com', 'youtube.com', 'twitter.com', 'instagram.com', 'netflix.com']
-    if any(dom in domain.lower() for dom in dominios_populares):
-        analisis['web_traffic'] = 1.0
-    else:
-        analisis['web_traffic'] = 0.0  # Bajo tráfico (sospechoso)
-
-    # 11. links_in_tags
-    # Porcentaje de enlaces que apuntan a dominios externos. Se aproxima según el largo de la URL o la presencia de parámetros.
-    if '?' in url or '&' in url:
-        analisis['links_in_tags'] = 0.0  # Sospechoso
+    # 15. links_in_tags
+    if '?' in url or '&' in url or len(query) > 0:
+        analisis['links_in_tags'] = 0.5
     else:
         analisis['links_in_tags'] = 1.0
 
-    # 12. sfh (Server Form Handler)
-    # Si los formularios apuntan a un dominio vacío o diferente. Si es un IP, se considera inseguro.
+    # 16. sfh
     if ip_pattern.search(domain) or domain == "":
         analisis['sfh'] = 0.0
     else:
         analisis['sfh'] = 1.0
 
-    # 13. request_url
-    # Porcentaje de elementos externos (imágenes, scripts) cargados desde otros dominios.
-    if 'wp-content' in url or 'assets' in url:
-        analisis['request_url'] = 0.5
-    else:
-        analisis['request_url'] = 1.0
+    # 17. submitting_to_email
+    analisis['submitting_to_email'] = 0.0 if 'mail' in url or 'mailto' in url else 1.0
 
-    # 14. links_pointing_to_page
-    # Número de enlaces que apuntan a la página de destino. Aproximado heurísticamente.
-    if len(path) > 20:
+    # 18. abnormal_url
+    analisis['abnormal_url'] = 1.0 if domain in url else 0.0
+
+    # 19. redirect
+    analisis['redirect'] = 0.0 if url.count('//') > 1 else 1.0
+
+    # 20. on_mouseover
+    analisis['on_mouseover'] = 1.0
+
+    # 21. rightclick
+    analisis['rightclick'] = 1.0
+
+    # 22. popupwindow
+    analisis['popupwindow'] = 1.0
+
+    # 23. iframe
+    analisis['iframe'] = 1.0
+
+    # 24. age_of_domain
+    if len(domain) > 10 and url_parseada.scheme == 'https':
+        analisis['age_of_domain'] = 1.0
+    else:
+        analisis['age_of_domain'] = 0.0
+
+    # 25. dnsrecord
+    analisis['dnsrecord'] = 1.0
+
+    # 26. web_traffic
+    dominios_populares = ['google.com', 'facebook.com', 'youtube.com', 'twitter.com', 'instagram.com', 'netflix.com', 'amazon.com', 'microsoft.com', 'github.com']
+    if any(dom in domain.lower() for dom in dominios_populares):
+        analisis['web_traffic'] = 1.0
+    else:
+        analisis['web_traffic'] = 0.0
+
+    # 27. page_rank
+    if any(dom in domain.lower() for dom in dominios_populares):
+        analisis['page_rank'] = 1.0
+    else:
+        analisis['page_rank'] = 0.0
+
+    # 28. google_index
+    analisis['google_index'] = 1.0
+
+    # 29. links_pointing_to_page
+    if len(path) > 30:
+        analisis['links_pointing_to_page'] = 0.0
+    elif len(path) > 10:
         analisis['links_pointing_to_page'] = 0.5
     else:
         analisis['links_pointing_to_page'] = 1.0
 
-    # 15. domain_registration_length
-    # Heurística: dominios HTTPS de marcas conocidas suelen tener registros largos, URLs raras suelen ser temporales (cortas).
-    if url_parseada.scheme == 'https' and len(domain) > 10:
-         analisis['domain_registration_length'] = 1.0
+    # 30. statistical_report
+    marcas_palabras = ['paypal', 'bank', 'secure', 'login', 'signin', 'verification', 'update', 'free', 'bonus', 'gift']
+    if any(p in domain.lower() or p in path.lower() for p in marcas_palabras):
+        analisis['statistical_report'] = 0.0
     else:
-         analisis['domain_registration_length'] = 0.0
+        analisis['statistical_report'] = 1.0
 
     return analisis
 
@@ -204,9 +256,8 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-    st.markdown("http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net")
+    st.markdown("Ejemplos sospechosos o legítimos: http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
     url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
-  
 
     # Selector de modelo
     opcion_modelo = st.selectbox("Algoritmo de Clasificación", ["Random Forest", "Red Neuronal"])
@@ -217,27 +268,21 @@ elif menu == "Predicción por URL Directa":
         else:
             # Cargar modelos y mapeos
             rf_model = joblib.load("modelo_rf.joblib")
-            rf_model_opt = joblib.load("modelo_rf_optimizado.joblib")
-            
             nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
             feature_columns = joblib.load("columnas_features.joblib")
 
-            # Extraer heurística de la URL
+            # Extraer heurística de la URL para todas las 30 variables
             valores_extraidos = analizar_url(url_input)
 
-            # Rellenar resto de columnas para mantener estructura requerida por los modelos
+            # Crear el DataFrame con el orden original exacto de las variables
             input_completo = {}
             for col in feature_columns:
-                if col in valores_extraidos:
-                    input_completo[col] = valores_extraidos[col]
-                else:
-                    input_completo[col] = 0.5 # Valor neutral por defecto
+                input_completo[col] = valores_extraidos.get(col, 0.5)
 
-            # Crear el DataFrame
             df_input = pd.DataFrame([input_completo])[feature_columns]
 
-            # Mostrar visualmente las variables estimadas
-            st.info("🔗 Características de la URL extraídas automáticamente por la heurística:")
+            # Mostrar visualmente las variables estimadas clave
+            st.info("🔗 Características extraídas de la URL por el extractor heurístico integrado:")
             col_izq, col_der = st.columns(2)
             with col_izq:
                 st.write(f"- **Tiene Dirección IP:** {'Sí (0.0)' if valores_extraidos['having_ip_address'] == 0.0 else 'No (1.0)'}")
@@ -251,23 +296,23 @@ elif menu == "Predicción por URL Directa":
                 st.write(f"- **Contiene guión en Dominio:** {'Sí (0.0)' if valores_extraidos['prefix_suffix'] == 0.0 else 'No (1.0)'}")
                 st.write(f"- **Subdominios (Puntos):** {'Múltiples (0.0)' if valores_extraidos['having_sub_domain'] == 0.0 else ('Uno (0.5)' if valores_extraidos['having_sub_domain'] == 0.5 else 'Ninguno/Seguro (1.0)')}")
                 st.write(f"- **Esquema de Seguridad SSL (https):** {'Inseguro (0.0)' if valores_extraidos['sslfinal_state'] == 0.0 else 'Seguro (1.0)'}")
-                st.write(f"- **Links en Tags (links_in_tags):** {'Externos/Sospechosos (0.0)' if valores_extraidos['links_in_tags'] == 0.0 else 'Seguros (1.0)'}")
+                st.write(f"- **Links en Tags (links_in_tags):** {'Externos/Sospechosos (0.5)' if valores_extraidos['links_in_tags'] == 0.5 else 'Seguros (1.0)'}")
                 st.write(f"- **Control de Formulario (sfh):** {'Sospechoso/IP (0.0)' if valores_extraidos['sfh'] == 0.0 else 'Seguro (1.0)'}")
 
             # Predecir
             if opcion_modelo == "Random Forest":
-                prediccion = rf_model_opt.predict(df_input)[0]
-                probabilidad = rf_model_opt.predict_proba(df_input).max()
+                prediccion = rf_model.predict(df_input)[0]
+                probabilidad = rf_model.predict_proba(df_input).max()
             else:
                 prob_nn = nn_optimized.predict(df_input)[0][0]
                 prediccion = 1.0 if prob_nn > 0.5 else 0.0
                 probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
-        # Mostrar Diagnóstico # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
+        # Mostrar Diagnóstico
         if prediccion == 1.0:
-            st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
+            st.success(f"✅ **Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
         else:
-            st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
+            st.error(f"🚨 **Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
 
         st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
 
@@ -304,7 +349,7 @@ elif menu == "Vista de Modelos":
         input_data['having_sub_domain'] = st.selectbox("Cantidad de subdominios", [1.0, 0.5, 0.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
         input_data['sslfinal_state'] = st.selectbox("Estado del certificado SSL", [0.0, 0.5, 1.0], format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)"))
 
-    # Completar las características restantes con valores neutrales (0.5 o 0.0)
+    # Completar las características restantes con valores neutrales (0.5 o 1.0 según la heurística por defecto)
     for col in feature_columns:
         if col not in input_data:
             input_data[col] = 0.5
@@ -331,7 +376,4 @@ elif menu == "Vista de Modelos":
         else:
             st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
 
-        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%") 
-
-
-  
+        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
