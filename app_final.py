@@ -103,7 +103,7 @@ elif menu == "Visualizaciones":
     st.subheader("📈 Matriz de Confusión")
     if st.checkbox("Generar la Matriz de Confusión (puede tardar unos segundos)"):
         plt.figure(figsize=(16, 16))
-        correlation_matrix = df_copia.corr(method='pearson')
+        correlation_matrix = df.corr(method='pearson')
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.1f',linewidths=0.5)
         plt.title('Matriz de Correlación - Phishing Websites')
         plt.show()
