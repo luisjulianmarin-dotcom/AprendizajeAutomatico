@@ -2,6 +2,9 @@ import streamlit as st
 import joblib
 import pandas as pd
 import tensorflow as tf
+import re
+from urllib.parse import urlparse
+from ucimlrepo import fetch_ucirepo
 
 
 import streamlit as st
