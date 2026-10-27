@@ -55,6 +55,28 @@ def cargar_datos():
 with st.spinner("Cargando dataset desde el repositorio UCI..."):
     df = cargar_datos()
 
+
+@st.cache_data
+def cargar_base_datos_local(ruta_csv="URL_Phishing.csv"):
+    try:
+        df = pd.read_csv(ruta_csv)
+        # Asegurarnos de limpiar espacios y convertir a minúsculas para una comparación exacta
+        return set(df['url'].astype(str).str.strip().str.lower())
+    except FileNotFoundError:
+        return set() # Retorna un conjunto vacío si el archivo no existe aún
+
+def verificar_reporte_local(url_a_revisar, analisis):
+    urls_maliciosas = cargar_base_datos_local()
+    url_limpia = url_a_revisar.strip().lower()
+    
+    if url_limpia in urls_maliciosas:
+        analisis['statistical_report'] = 0.0
+        st.warning("⚠️ ¡Alerta! El sitio se encuentra registrado en la base de datos local de páginas maliciosas.")
+    else:
+        analisis['statistical_report'] = 1.0
+        st.success("✅ El sitio no figura en los reportes estadísticos locales.")
+    return analisis
+
 # Función heurística para extraer características a partir de una URL
 def analizar_url(url):
     if not url.startswith(('http://', 'https://')):
@@ -68,32 +90,7 @@ def analizar_url(url):
     analisis = {}
     
     # 30. statistical_report (Se revisa primero esta variable para afectar las otras del modelo)
-    api_url = "https://checkurl.phishtank.com/checkurl/"
-    data = {
-        'url': url,
-        'format': 'json'
-    }
-
-    try:
-        headers = {'User-Agent': 'phishing-detector-app'}
-        response = requests.post(api_url, data=data, headers=headers, timeout=5)
-
-        if response.status_code == 200:
-            resultado = response.json()
-            in_database = resultado.get('results', {}).get('in_database', False)
-            verified = resultado.get('results', {}).get('verified', False)
-
-            if in_database and verified:
-                analisis['statistical_report'] = 0.0
-            else:
-                analisis['statistical_report'] = 1.0
-        else:
-            analisis['statistical_report'] = 0.5
-
-    except Exception as e:
-        analisis['statistical_report'] = 0.0
-
-    return analisis
+    analisis = verificar_reporte_local(url, analisis)
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     analisis['having_ip_address'] = 0.0 if ip_pattern.search(domain) else 0.5
