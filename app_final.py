@@ -205,7 +205,7 @@ def analizar_url(url):
     # 30. statistical_report
     api_url = "https://checkurl.phishtank.com/checkurl/"
     data = {
-        'url': url,  # Corregido de url_parseada (un objeto) a url (string)
+        'url': url,
         'format': 'json'
     }
 
@@ -227,8 +227,8 @@ def analizar_url(url):
 
     except Exception as e:
         analisis['statistical_report'] = 0.5
-        
-    return analisis  # Corregido: Se debe retornar obligatoriamente el diccionario al final
+
+    return analisis
 
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
@@ -288,7 +288,7 @@ elif menu == "Predicción por URL Directa":
     if st.button("Analizar y Predecir URL"):
         if url_input.strip() == "":
             st.warning("Por favor ingrese una URL válida.")
-        else: 
+        else:
             # Cargar modelos y mapeos
             rf_model = joblib.load("modelo_rf.joblib")
             nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
@@ -366,25 +366,33 @@ elif menu == "Vista de Modelos":
     # Selector de modelo con nombres reales
     opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
 
-    st.subheader("Ingrese las características de la URL / Sitio Web")
+    st.subheader("Ingrese las 15 características más significativas de la URL / Sitio Web")
 
-    # Crear entradas dinámicas para las características
     input_data = {}
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        input_data['having_ip_address'] = st.selectbox("¿Tiene dirección IP en la URL?", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['url_length'] = st.selectbox("Longitud de la URL", [1.0, 0.5, 0.0], format_func=lambda x: "Larga (0.0)" if x==0.0 else ("Moderada (0.5)" if x==0.5 else "Corta (1.0)"))
-        input_data['shortining_service'] = st.selectbox("Usa acortador de URL", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['having_at_symbol'] = st.selectbox("Presencia del símbolo '@'", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['sslfinal_state'] = st.selectbox("sslfinal_state (Certificado SSL)", [0.0, 0.5, 1.0], format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)"))
+        input_data['url_of_anchor'] = st.selectbox("url_of_anchor (Anclas de URL)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
+        input_data['prefix_suffix'] = st.selectbox("prefix_suffix (Guión en Dominio)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['having_sub_domain'] = st.selectbox("having_sub_domain (Subdominios)", [0.0, 0.5, 1.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
+        input_data['request_url'] = st.selectbox("request_url (Recursos Externos)", [0.0, 0.5, 1.0], format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
 
     with col2:
-        input_data['double_slash_redirecting'] = st.selectbox("Redirección con doble barra '//'", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['prefix_suffix'] = st.selectbox("Uso de guion (-) en dominio", [1.0, 0.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['having_sub_domain'] = st.selectbox("Cantidad de subdominios", [1.0, 0.5, 0.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
-        input_data['sslfinal_state'] = st.selectbox("Estado del certificado SSL", [0.0, 0.5, 1.0], format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)"))
+        input_data['having_ip_address'] = st.selectbox("having_ip_address (Dirección IP)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['shortining_service'] = st.selectbox("shortining_service (Acortadores)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['having_at_symbol'] = st.selectbox("having_at_symbol (Arroba @)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['double_slash_redirecting'] = st.selectbox("double_slash_redirecting (Doble barra)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        input_data['statistical_report'] = st.selectbox("statistical_report (API / PhishTank)", [0.0, 0.5, 1.0], format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)"))
 
-    # Completar las características restantes con valores neutrales (0.5 o 1.0 según la heurística por defecto)
+    with col3:
+        input_data['web_traffic'] = st.selectbox("web_traffic (Tráfico de Red)", [0.0, 0.5, 1.0], format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)"))
+        input_data['age_of_domain'] = st.selectbox("age_of_domain (Edad del Dominio)", [0.0, 0.5, 1.0], format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)"))
+        input_data['dnsrecord'] = st.selectbox("dnsrecord (Registro DNS)", [0.0, 1.0], format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)")
+        input_data['sfh'] = st.selectbox("sfh (Manejo de Formularios)", [0.0, 0.5, 1.0], format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)"))
+        input_data['links_in_tags'] = st.selectbox("links_in_tags (Enlaces en Metaetiquetas)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)"))
+
+    # Completar el resto de variables con el valor neutral por defecto (0.5)
     for col in feature_columns:
         if col not in input_data:
             input_data[col] = 0.5
@@ -399,7 +407,7 @@ elif menu == "Vista de Modelos":
             modelo = rf_model
             prediccion = modelo.predict(df_input)[0]
             probabilidad = modelo.predict_proba(df_input).max()
-        else: 
+        else:
             # Para la Red Neuronal
             prob_nn = nn_optimized.predict(df_input)[0][0]
             prediccion = 1.0 if prob_nn > 0.90 else 0.0
