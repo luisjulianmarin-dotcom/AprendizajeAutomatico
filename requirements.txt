@@ -7,4 +7,3 @@ ucimlrepo
 joblib
 tensorflow
 scikit-learn
-urlparse
