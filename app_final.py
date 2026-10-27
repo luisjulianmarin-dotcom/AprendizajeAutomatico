@@ -71,22 +71,22 @@ def analizar_url(url):
 
     # 2. url_length
     longitud = len(url)
-    if longitud < 54:
+    if longitud < 10:
         analisis['url_length'] = 1.0
-    elif longitud <= 75:
+    elif longitud <= 15:
         analisis['url_length'] = 0.5
     else:
         analisis['url_length'] = 0.0
 
     # 3. shortining_service
-    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly']
+    acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly','logi.php','logi.html']
     analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 1.0
 
     # 4. having_at_symbol
     analisis['having_at_symbol'] = 0.0 if '@' in url else 1.0
 
     # 5. double_slash_redirecting
-    analisis['double_slash_redirecting'] = 0.0 if url.rfind('//') > 7 else 1.0
+    analisis['double_slash_redirecting'] = 0.0 if url.rfind('//') > 1 else 1.0
 
     # 6. prefix_suffix (Guión '-' en dominio)
     analisis['prefix_suffix'] = 0.0 if '-' in domain else 1.0
@@ -107,7 +107,7 @@ def analizar_url(url):
         analisis['sslfinal_state'] = 0.0
 
     # 9. domain_registration_length
-    if url_parseada.scheme == 'https' and len(domain) > 12:
+    if url_parseada.scheme == 'https' and len(domain) > 4:
          analisis['domain_registration_length'] = 1.0
     else:
          analisis['domain_registration_length'] = 0.0
@@ -116,7 +116,7 @@ def analizar_url(url):
     analisis['favicon'] = 1.0 if url_parseada.scheme == 'https' else 0.0
 
     # 11. port
-    puertos_sospechosos = [':8080', ':8443', ':3000', ':8000']
+    puertos_sospechosos = [':8080', ':8443', ':3000', ':8000',':80']
     analisis['port'] = 0.0 if any(port in domain for port in puertos_sospechosos) else 1.0
 
     # 12. https_token
@@ -136,7 +136,7 @@ def analizar_url(url):
 
     # 15. links_in_tags
     if '?' in url or '&' in url or len(query) > 0:
-        analisis['links_in_tags'] = 0.5
+        analisis['links_in_tags'] = 0.0
     else:
         analisis['links_in_tags'] = 1.0
 
@@ -144,37 +144,37 @@ def analizar_url(url):
     if ip_pattern.search(domain) or domain == "":
         analisis['sfh'] = 0.0
     else:
-        analisis['sfh'] = 1.0
+        analisis['sfh'] = 0.5
 
     # 17. submitting_to_email
-    analisis['submitting_to_email'] = 0.0 if 'mail' in url or 'mailto' in url else 1.0
+    analisis['submitting_to_email'] = 0.0 if 'mail' in url or 'mailto' in url else 0.5
 
     # 18. abnormal_url
-    analisis['abnormal_url'] = 1.0 if domain in url else 0.0
+    analisis['abnormal_url'] = 0.5 if domain in url else 0.0
 
     # 19. redirect
     analisis['redirect'] = 0.0 if url.count('//') > 1 else 1.0
 
     # 20. on_mouseover
-    analisis['on_mouseover'] = 1.0
+    analisis['on_mouseover'] = 0.5
 
     # 21. rightclick
-    analisis['rightclick'] = 1.0
+    analisis['rightclick'] = 0.5
 
     # 22. popupwindow
-    analisis['popupwindow'] = 1.0
+    analisis['popupwindow'] = 0.5
 
     # 23. iframe
-    analisis['iframe'] = 1.0
+    analisis['iframe'] = 0.5
 
     # 24. age_of_domain
-    if len(domain) > 10 and url_parseada.scheme == 'https':
-        analisis['age_of_domain'] = 1.0
+    if len(domain) > 4 and url_parseada.scheme == 'https':
+        analisis['age_of_domain'] = 0.5
     else:
         analisis['age_of_domain'] = 0.0
 
     # 25. dnsrecord
-    analisis['dnsrecord'] = 1.0
+    analisis['dnsrecord'] = 0.5
 
     # 26. web_traffic
     dominios_populares = ['google.com', 'facebook.com', 'youtube.com', 'twitter.com', 'instagram.com', 'netflix.com', 'amazon.com', 'microsoft.com', 'github.com']
@@ -201,7 +201,7 @@ def analizar_url(url):
         analisis['links_pointing_to_page'] = 1.0
 
     # 30. statistical_report
-    marcas_palabras = ['paypal', 'bank', 'secure', 'login', 'signin', 'verification', 'update', 'free', 'bonus', 'gift']
+    marcas_palabras = ['paypal', 'bank', 'secure', 'login', 'signin', 'verification', 'update', 'free', 'bonus', 'gift','log','regalo','amigo','rifa','bono']
     if any(p in domain.lower() or p in path.lower() for p in marcas_palabras):
         analisis['statistical_report'] = 0.0
     else:
@@ -256,7 +256,7 @@ elif menu == "Visualizaciones":
 elif menu == "Predicción por URL Directa":
     st.subheader("🔗 Análisis Inteligente y Automatizado de URL")
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
-    st.markdown("Ejemplos sospechosos o legítimos: http://103.119.17.126/?d6o, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
+    st.markdown("Ejemplos sospechosos o legítimos: http://103.119.17.126/?d6o, http://https://103.119.17.126-lock-/?d6o_logi.php, www.bancolombia.olimpia.co, http://paypal-secure-auth.net, https://www.google.com")
     url_input = st.text_input("Ingrese la dirección URL:", "https://www.google.com")
 
     # Selector de modelo
