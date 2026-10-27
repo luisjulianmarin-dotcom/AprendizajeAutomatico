@@ -304,6 +304,8 @@ elif menu == "Predicción por URL Directa":
             input_completo = {}
             for col in feature_columns:
                 input_completo[col] = valores_extraidos.get(col, 0.5)
+                st.write(type(valores_extraidos))
+                print(valores_extraidos)
 
             df_input = pd.DataFrame([input_completo])[feature_columns]
             
