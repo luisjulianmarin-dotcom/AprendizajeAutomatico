@@ -265,7 +265,7 @@ elif menu == "Predicción por URL Directa":
     if st.button("Analizar y Predecir URL"):
         if url_input.strip() == "":
             st.warning("Por favor ingrese una URL válida.")
-        else:
+        else: 
             # Cargar modelos y mapeos
             rf_model = joblib.load("modelo_rf.joblib")
             nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
@@ -281,23 +281,34 @@ elif menu == "Predicción por URL Directa":
 
             df_input = pd.DataFrame([input_completo])[feature_columns]
 
-            # Mostrar visualmente las variables estimadas clave
-            st.info("🔗 Características extraídas de la URL por el extractor heurístico integrado:")
-            col_izq, col_der = st.columns(2)
-            with col_izq:
-                st.write(f"- **Tiene Dirección IP:** {'Sí (0.0)' if valores_extraidos['having_ip_address'] == 0.0 else 'No (1.0)'}")
-                st.write(f"- **Longitud de la URL:** {'Corta (1.0)' if valores_extraidos['url_length'] == 1.0 else ('Moderada (0.5)' if valores_extraidos['url_length'] == 0.5 else 'Larga (0.0)')}")
-                st.write(f"- **Usa acortadores:** {'Sí (0.0)' if valores_extraidos['shortining_service'] == 0.0 else 'No (1.0)'}")
-                st.write(f"- **Contiene Símbolo @:** {'Sí (0.0)' if valores_extraidos['having_at_symbol'] == 0.0 else 'No (1.0)'}")
-                st.write(f"- **URL de Anclaje (url_of_anchor):** {'Sospechoso (0.0)' if valores_extraidos['url_of_anchor'] == 0.0 else 'Seguro (1.0)'}")
-                st.write(f"- **Tráfico Web (web_traffic):** {'Bajo/Desconocido (0.0)' if valores_extraidos['web_traffic'] == 0.0 else 'Alto (1.0)'}")
-            with col_der:
-                st.write(f"- **Redirección '//':** {'Sí (0.0)' if valores_extraidos['double_slash_redirecting'] == 0.0 else 'No (1.0)'}")
-                st.write(f"- **Contiene guión en Dominio:** {'Sí (0.0)' if valores_extraidos['prefix_suffix'] == 0.0 else 'No (1.0)'}")
-                st.write(f"- **Subdominios (Puntos):** {'Múltiples (0.0)' if valores_extraidos['having_sub_domain'] == 0.0 else ('Uno (0.5)' if valores_extraidos['having_sub_domain'] == 0.5 else 'Ninguno/Seguro (1.0)')}")
-                st.write(f"- **Esquema de Seguridad SSL (https):** {'Inseguro (0.0)' if valores_extraidos['sslfinal_state'] == 0.0 else 'Seguro (1.0)'}")
-                st.write(f"- **Links en Tags (links_in_tags):** {'Externos/Sospechosos (0.5)' if valores_extraidos['links_in_tags'] == 0.5 else 'Seguros (1.0)'}")
-                st.write(f"- **Control de Formulario (sfh):** {'Sospechoso/IP (0.0)' if valores_extraidos['sfh'] == 0.0 else 'Seguro (1.0)'}")
+            # Mostrar visualmente las 30 variables estimadas divididas en tres columnas
+            st.info("🔗 Características extraídas de la URL por el extractor heurístico integrado (30 Variables Predictoras):")
+            
+            # Crear tres columnas en Streamlit
+            col1, col2, col3 = st.columns(3)
+            
+            # Dividir la lista de las 30 variables en tres grupos de 10 de manera equitativa
+            grupo_1 = feature_columns[:10]
+            grupo_2 = feature_columns[10:20]
+            grupo_3 = feature_columns[20:]
+
+            with col1:
+                st.markdown("**Grupo 1 (Características de URL / Redirecciones)**")
+                for col in grupo_1:
+                    valor = input_completo[col]
+                    st.write(f"🔹 **{col}:** `{valor}`")
+
+            with col2:
+                st.markdown("**Grupo 2 (Servicios, Protocolos y Puertos)**")
+                for col in grupo_2:
+                    valor = input_completo[col]
+                    st.write(f"🔹 **{col}:** `{valor}`")
+
+            with col3:
+                st.markdown("**Grupo 3 (Métricas Externas e Identificadores)**")
+                for col in grupo_3:
+                    valor = input_completo[col]
+                    st.write(f"🔹 **{col}:** `{valor}`")
 
             # Predecir
             if opcion_modelo == "Random Forest":
@@ -308,13 +319,14 @@ elif menu == "Predicción por URL Directa":
                 prediccion = 1.0 if prob_nn > 0.5 else 0.0
                 probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
-        # Mostrar Diagnóstico
-        if prediccion == 1.0:
-            st.success(f"✅ **Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
-        else:
-            st.error(f"🚨 **Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
+            # Mostrar Diagnóstico
+            st.markdown("--- ")
+            if prediccion == 1.0:
+                st.success(f"✅ **Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
+            else:
+                st.error(f"🚨 **Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
 
-        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
+            st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
 
 elif menu == "Vista de Modelos":
     # Cargar modelos y columnas
