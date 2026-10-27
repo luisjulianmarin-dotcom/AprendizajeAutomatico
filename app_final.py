@@ -331,7 +331,6 @@ elif menu == "Predicción por URL Directa":
     st.markdown("Introduce una dirección web y los modelos extraerán de forma automática sus características para determinar el nivel de riesgo de Phishing.")
     st.markdown("Ejemplos sospechosos: ")
     st.markdown("                       http://103.119.17.126/?d6o")
-    st.markdown("                       http://www.bancolombia.olimpia.co")
     st.markdown("                       http://paypal-secure-auth.net")
     st.markdown("                       https://www.google.com")
     st.markdown("                       http://bancolombia.seguridad-actualizacion.co")
