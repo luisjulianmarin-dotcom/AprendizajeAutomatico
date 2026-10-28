@@ -512,7 +512,7 @@ elif menu == "Vista de Modelos":
             probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
 
         # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
-        if prediccion == 1.0:
+        if prediccion == 1.0 and probabilidad >=0.80:
             st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
         else:
             st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
