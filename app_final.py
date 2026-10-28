@@ -437,22 +437,22 @@ elif menu == "Vista de Modelos":
         input_data['url_of_anchor'] = st.selectbox("url_of_anchor (Anclas de URL)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
         input_data['prefix_suffix'] = st.selectbox("prefix_suffix (Guión en Dominio)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
         input_data['having_sub_domain'] = st.selectbox("having_sub_domain (Subdominios)", [0.0, 0.5, 1.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
-        input_data['request_url'] = st.selectbox("request_url (Recursos Externos)", [0.0, 0.5, 1.0], format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
-
+        input_data['web_traffic'] = st.selectbox("web_traffic (Tráfico de Red)", [0.0, 0.5, 1.0], format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)"))
+        
     with col2:
+        input_data['request_url'] = st.selectbox("request_url (Recursos Externos)", [0.0, 0.5, 1.0], format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
+        input_data['links_in_tags'] = st.selectbox("links_in_tags (Enlaces en Metaetiquetas)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)"))
+        input_data['sfh'] = st.selectbox("sfh (Manejo de Formularios)", [0.0, 0.5, 1.0], format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)"))
+        input_data['age_of_domain'] = st.selectbox("age_of_domain (Edad del Dominio)", [0.0, 0.5, 1.0], format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)"))
         input_data['having_ip_address'] = st.selectbox("having_ip_address (Dirección IP)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
+        
+    with col3:
+        input_data['dnsrecord'] = st.selectbox("dnsrecord (Registro DNS)", [0.0, 1.0], format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)")
+        input_data['statistical_report'] = st.selectbox("statistical_report (API / PhishTank)", [0.0, 0.5, 1.0], format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)"))
         input_data['shortining_service'] = st.selectbox("shortining_service (Acortadores)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
         input_data['having_at_symbol'] = st.selectbox("having_at_symbol (Arroba @)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
         input_data['double_slash_redirecting'] = st.selectbox("double_slash_redirecting (Doble barra)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['statistical_report'] = st.selectbox("statistical_report (API / PhishTank)", [0.0, 0.5, 1.0], format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)"))
-
-    with col3:
-        input_data['web_traffic'] = st.selectbox("web_traffic (Tráfico de Red)", [0.0, 0.5, 1.0], format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)"))
-        input_data['age_of_domain'] = st.selectbox("age_of_domain (Edad del Dominio)", [0.0, 0.5, 1.0], format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)"))
-        input_data['dnsrecord'] = st.selectbox("dnsrecord (Registro DNS)", [0.0, 1.0], format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)")
-        input_data['sfh'] = st.selectbox("sfh (Manejo de Formularios)", [0.0, 0.5, 1.0], format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)"))
-        input_data['links_in_tags'] = st.selectbox("links_in_tags (Enlaces en Metaetiquetas)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)"))
-
+          
     # Completar el resto de variables con el valor neutral por defecto (0.5)
     for col in feature_columns:
         if col not in input_data:
