@@ -452,17 +452,9 @@ elif menu == "Vista de Modelos":
     nn_optimized = tf.keras.models.load_model("modelo_nnrl_optimizado.keras")
     feature_columns = joblib.load("columnas_features.joblib")
 
-    st.title("Detección de Sitios Web de Phishing")
-    st.markdown("""
-    **Descripción del problema:** Esta aplicación utiliza modelos de Machine Learning para clasificar si un sitio web es legítimo o si representa una amenaza de *phishing* basándose en características de su URL y estructura técnica.
-    **Fuente del dataset:** [UCI Machine Learning Repository - Phishing Websites](https://archive.ics.uci.edu/dataset/327)
-    """)
-
     # Selector de modelo con nombres reales
     opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
-
     st.subheader("Ingrese las 15 características más significativas de la URL / Sitio Web")
-
     input_data = {}
     col1, col2, col3 = st.columns(3)
 
