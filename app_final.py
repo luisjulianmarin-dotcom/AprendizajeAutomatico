@@ -12,7 +12,6 @@ import requests
 import json
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
 
 # Configuración de la página
 st.set_page_config(
@@ -198,7 +197,7 @@ def analizar_url(url):
         analisis['request_url'] = 1.0
 
     # 14. url_of_anchor
-    analisis['url_of_anchor']= evaluar_url_of_anchor(url_parseada)
+    analisis['url_of_anchor']= evaluar_url_of_anchor(url_limpia)
     #if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
     #  analisis['url_of_anchor'] = 0.0
     #else:
