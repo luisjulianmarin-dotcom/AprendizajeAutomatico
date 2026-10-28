@@ -79,7 +79,7 @@ def analizar_url(url):
     else:
         url_parseada = urlparse(url)
     
-    t.write(f"URL **{url_parseada}")
+    st.write(f"URL: {url_parseada}")
     domain = url_parseada.netloc
     path = url_parseada.path
     query = url_parseada.query
