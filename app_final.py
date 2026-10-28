@@ -391,7 +391,7 @@ elif menu == "Predicción por URL Directa":
         else:
             # Cargar modelos y mapeos
             rf_model = joblib.load("modelo_rf.joblib")
-            nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
+            nn_optimized = tf.keras.models.load_model("modelo_nnrl_optimizado.keras")
             feature_columns = joblib.load("columnas_features.joblib")
 
             valores_extraidos = analizar_url(url_input) # Extraer heurística de la URL para todas las 30 variables
@@ -452,7 +452,7 @@ elif menu == "Predicción por URL Directa":
 elif menu == "Vista de Modelos":
     # Cargar modelos y columnas
     rf_model = joblib.load("modelo_rf.joblib")
-    nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
+    nn_optimized = tf.keras.models.load_model("modelo_nnrl_optimizado.keras")
     feature_columns = joblib.load("columnas_features.joblib")
 
     st.title("Detección de Sitios Web de Phishing")
