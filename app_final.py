@@ -78,7 +78,8 @@ def analizar_url(url):
         url_parseada = urlparse('http://' + url)
     else:
         url_parseada = urlparse(url)
-
+    
+    t.write(f"URL **{url_parseada}")
     domain = url_parseada.netloc
     path = url_parseada.path
     query = url_parseada.query
@@ -353,11 +354,9 @@ elif menu == "Predicción por URL Directa":
             nn_optimized = tf.keras.models.load_model("modelo_nn_optimizado.keras")
             feature_columns = joblib.load("columnas_features.joblib")
 
-            # Extraer heurística de la URL para todas las 30 variables
-            valores_extraidos = analizar_url(url_input)
+            valores_extraidos = analizar_url(url_input) # Extraer heurística de la URL para todas las 30 variables
 
-            # Crear el DataFrame con el orden original exacto de las variables
-            input_completo = {}
+            input_completo = {}   # Crear el DataFrame con el orden original exacto de las variables
             for col in feature_columns:
                 input_completo[col] = valores_extraidos.get(col, 0.5)
 
