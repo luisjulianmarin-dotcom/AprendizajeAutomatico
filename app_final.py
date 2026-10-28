@@ -115,7 +115,10 @@ def analizar_url(url):
 
     # 3. shortining_service
     acortadores = ['bit.ly', 'goo.gl', 'tinyurl', 't.co', 'ow.ly', 'is.gd', 'rebrand.ly', 'buff.ly','logi.php','logi.html','d6o']
-    analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 0.5
+    if analisis['statistical_report'] != 1.0:
+        analisis['shortining_service'] = 0.5
+    else:
+       analisis['shortining_service'] = 0.0 if any(ac in domain for ac in acortadores) else 0.5
 
     # 4. having_at_symbol
     if analisis['statistical_report'] != 1.0:
@@ -150,9 +153,9 @@ def analizar_url(url):
     # 8. sslfinal_state
     if url_parseada.scheme == 'https':
         if analisis['statistical_report'] != 1.0:
-          analisis['sslfinal_state'] = 1.0
-        else:
           analisis['sslfinal_state'] = 0.5
+        else:
+          analisis['sslfinal_state'] = 1.0
     else:
         analisis['sslfinal_state'] = 0.0
       
