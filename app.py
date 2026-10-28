@@ -27,11 +27,8 @@ st.markdown("""
 st.title("🛡️ Detección de Sitios Web de Phishing")
 st.markdown("""
 **Descripción del problema:** Esta aplicación utiliza modelos de Machine Learning para clasificar si un sitio web es legítimo o si representa una amenaza de *phishing* basándose en características de su URL y estructura técnica.
-**Fuente del dataset:** [UCI Machine Learning Repository - Phishing Websites](https://archive.ics.uci.edu/dataset/327)
+**Fuente del dataset:** [UCI Machine Learning Repository - Phishing Websites](https://archive.ics.uci.edu/dataset/327) 
 """)
-
-st.title("🛡️ Dashboard Interactivo: Phishing Websites Dataset")
-st.markdown("Aplicación de análisis exploratorio de datos basada en el repositorio de la UCI (ID: 327).")
 
 # Función para cargar y cachear los datos
 @st.cache_data
