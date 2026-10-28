@@ -7,3 +7,5 @@ ucimlrepo
 joblib
 tensorflow
 scikit-learn
+requests
+beautifulsoup4
