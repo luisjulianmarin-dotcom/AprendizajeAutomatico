@@ -78,22 +78,22 @@ def analizar_url(url):
         url_parseada = urlparse('http://' + url)
     else:
         url_parseada = urlparse(url)
-    
+
     st.write(f"URL: {url_parseada}")
     domain = url_parseada.netloc
     path = url_parseada.path
     query = url_parseada.query
     analisis = {}
-    
+
     # 30. statistical_report (Se revisa primero esta variable para afectar las otras del modelo)
     urls_maliciosas = cargar_base_datos_local()
     url_limpia = url.strip().lower()
-    
+
     if url_limpia in urls_maliciosas:
         analisis['statistical_report'] = 0.0
     else:
         analisis['statistical_report'] = 1.0
-        
+
     # 1. having_ip_address
     ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     if analisis['statistical_report'] != 1.0:
@@ -158,7 +158,7 @@ def analizar_url(url):
           analisis['sslfinal_state'] = 1.0
     else:
         analisis['sslfinal_state'] = 0.0
-      
+
 
     # 9. domain_registration_length
     if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
@@ -286,9 +286,9 @@ def analizar_url(url):
         analisis['links_pointing_to_page'] = 0.5
     else:
         analisis['links_pointing_to_page'] = 1.0
-    
+
     return analisis
-    
+
 # Menú lateral de navegación
 st.sidebar.header("Panel de Control")
 menu = st.sidebar.selectbox(
