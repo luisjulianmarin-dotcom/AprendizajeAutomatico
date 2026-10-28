@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 import json
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 # Configuración de la página
 st.set_page_config(
@@ -195,13 +198,14 @@ def analizar_url(url):
         analisis['request_url'] = 1.0
 
     # 14. url_of_anchor
-    if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
-      analisis['url_of_anchor'] = 0.0
-    else:
-      if '#' in url or 'javascript' in url.lower() or 'void' in url.lower():
-          analisis['url_of_anchor'] = 0.0
-      else:
-          analisis['url_of_anchor'] = 1.0
+    analisis['url_of_anchor']= evaluar_url_of_anchor(url_parseada)
+    #if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
+    #  analisis['url_of_anchor'] = 0.0
+    #else:
+    #  if '#' in url or 'javascript' in url.lower() or 'void' in url.lower():
+    #      analisis['url_of_anchor'] = 0.0
+    #  else:
+    #      analisis['url_of_anchor'] = 1.0
 
     # 15. links_in_tags
     if ip_pattern.search(domain) or analisis['statistical_report'] != 1.0:
@@ -481,3 +485,64 @@ elif menu == "Vista de Modelos":
             st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
 
         st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
+
+
+
+def evaluar_url_of_anchor(url):
+    try:
+        # 1. Configurar un User-Agent para simular un navegador real y evitar bloqueos
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # 2. Extraer el dominio base de la URL analizada
+        parsed_url = urlparse(url)
+        base_domain = parsed_url.netloc
+        
+        # 3. Parsear el código HTML de la página
+        soup = BeautifulSoup(response.text, 'html.parser')
+        anchors = soup.find_all('a')
+        
+        total_anchors = len(anchors)
+        if total_anchors == 0:
+            print("La página no contiene etiquetas <a>.")
+            return 1
+        
+        suspicious_count = 0
+        
+        # 4. Recorrer cada enlace para detectar anomalías
+        for a in anchors:
+            href = a.get('href')
+            
+            # Si el enlace está vacío, apunta a un ancla interna (#) o ejecuta JavaScript
+            if not href or href.startswith('#') or href.startswith('javascript:'):
+                suspicious_count += 1
+            else:
+                parsed_href = urlparse(href)
+                # Si el enlace tiene un dominio explícito y es diferente al dominio base de la página
+                if parsed_href.netloc and parsed_href.netloc != base_domain:
+                    suspicious_count += 1
+                    
+        # 5. Calcular el porcentaje de enlaces sospechosos o externos
+        percentage = (suspicious_count / total_anchors) * 100
+        
+        # 6. Aplicar los criterios de evaluación del dataset UCI
+        # (Generalmente: < 31% es seguro, entre 31% y 67% es moderado/sospechoso, > 67% es phishing)
+        if percentage < 31:
+            resultado = "Legítimo / Seguro (Clase baja o 1)"
+            return 1
+        elif 31 <= percentage <= 67:
+            resultado = "Sospechoso (Clase neutral 0.5)"
+            return 0.5
+        else:
+            resultado = "Phishing / Alto riesgo (Clase alta o 0)"
+            return 0
+            
+        print(f"Total de enlaces (<a>): {total_anchors}")
+        print(f"Enlaces sospechosos/externos: {suspicious_count}")
+        print(f"Porcentaje calculado: {percentage:.2f}%")
+        print(f"Evaluación del parámetro: {resultado}")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error al intentar acceder a la URL: {e}")
+        return 0
