@@ -12,6 +12,7 @@ import requests
 import json
 import requests
 from bs4 import BeautifulSoup
+import random
 
 # Configuración de la página
 st.set_page_config(
@@ -327,7 +328,7 @@ def analizar_url(url):
 st.sidebar.header("Panel de Control")
 menu = st.sidebar.selectbox(
     "Selecciona una sección:",
-    ["Predicción por URL Directa","Vista de Modelos","Vista General", "Resumen Estadístico", "Control de Nulos", "Visualizaciones"]
+    ["Predicción por URL Directa","Variables Random x Modelo","Vista de Modelos","Vista General", "Resumen Estadístico", "Control de Nulos", "Visualizaciones"]
 )
 
 target_col = df.columns[-1]
@@ -508,6 +509,155 @@ elif menu == "Vista de Modelos":
 
         st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
 
+elif menu == "Variables Random x Modelo":
+    # Cargar modelos y columnas
+    rf_model = joblib.load("modelo_rf.joblib")
+    nn_optimized = tf.keras.models.load_model("modelo_nnrl_optimizado.keras")
+    feature_columns = joblib.load("columnas_features.joblib")
 
+    # Selector de modelo con nombres reales
+    opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
+    st.subheader("Ingrese las 15 características más significativas de la URL / Sitio Web")
 
+    # Definir las listas de opciones permitidas para cada variable específica
+    opciones_3_niveles = [0.0, 0.5, 1.0]
+    opciones_2_niveles = [0.0, 1.0]
 
+    # Diccionario de mapeo de opciones para cada variable
+    mapping_variables = {
+        'sslfinal_state': opciones_3_niveles,
+        'url_of_anchor': opciones_3_niveles,
+        'prefix_suffix': opciones_2_niveles,
+        'having_sub_domain': opciones_3_niveles,
+        'web_traffic': opciones_3_niveles,
+        'request_url': opciones_3_niveles,
+        'links_in_tags': opciones_3_niveles,
+        'sfh': opciones_3_niveles,
+        'age_of_domain': opciones_3_niveles,
+        'having_ip_address': opciones_2_niveles,
+        'dnsrecord': opciones_2_niveles,
+        'statistical_report': opciones_3_niveles,
+        'shortining_service': opciones_2_niveles,
+        'having_at_symbol': opciones_2_niveles,
+        'double_slash_redirecting': opciones_2_niveles
+    }
+
+    # Botón para asignar valores aleatorios a todas las variables usando session_state
+    if st.button("🎲 Llenar valores aleatoriamente"):
+        for var_name, opciones in mapping_variables.items():
+            st.session_state[f"input_{var_name}"] = random.choice(opciones)
+        st.success("¡Se han asignado valores aleatorios a los 15 campos!")
+        st.rerun()
+
+    input_data = {}
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        input_data['sslfinal_state'] = st.selectbox(
+            "sslfinal_state (Certificado SSL)", opciones_3_niveles, 
+            key="input_sslfinal_state",
+            format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['url_of_anchor'] = st.selectbox(
+            "url_of_anchor (Anclas de URL)", opciones_3_niveles, 
+            key="input_url_of_anchor",
+            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['prefix_suffix'] = st.selectbox(
+            "prefix_suffix (Guión en Dominio)", opciones_2_niveles, 
+            key="input_prefix_suffix",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['having_sub_domain'] = st.selectbox(
+            "having_sub_domain (Subdominios)", opciones_3_niveles, 
+            key="input_having_sub_domain",
+            format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)")
+        )
+        input_data['web_traffic'] = st.selectbox(
+            "web_traffic (Tráfico de Red)", opciones_3_niveles, 
+            key="input_web_traffic",
+            format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)")
+        )
+        
+    with col2:
+        input_data['request_url'] = st.selectbox(
+            "request_url (Recursos Externos)", opciones_3_niveles, 
+            key="input_request_url",
+            format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['links_in_tags'] = st.selectbox(
+            "links_in_tags (Enlaces en Metaetiquetas)", opciones_3_niveles, 
+            key="input_links_in_tags",
+            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['sfh'] = st.selectbox(
+            "sfh (Manejo de Formularios)", opciones_3_niveles, 
+            key="input_sfh",
+            format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)")
+        )
+        input_data['age_of_domain'] = st.selectbox(
+            "age_of_domain (Edad del Dominio)", opciones_3_niveles, 
+            key="input_age_of_domain",
+            format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)")
+        )
+        input_data['having_ip_address'] = st.selectbox(
+            "having_ip_address (Dirección IP)", opciones_2_niveles, 
+            key="input_having_ip_address",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        
+    with col3:
+        input_data['dnsrecord'] = st.selectbox(
+            "dnsrecord (Registro DNS)", opciones_2_niveles, 
+            key="input_dnsrecord",
+            format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)"
+        )
+        input_data['statistical_report'] = st.selectbox(
+            "statistical_report (API / PhishTank)", opciones_3_niveles, 
+            key="input_statistical_report",
+            format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)")
+        )
+        input_data['shortining_service'] = st.selectbox(
+            "shortining_service (Acortadores)", opciones_2_niveles, 
+            key="input_shortining_service",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['having_at_symbol'] = st.selectbox(
+            "having_at_symbol (Arroba @)", opciones_2_niveles, 
+            key="input_having_at_symbol",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['double_slash_redirecting'] = st.selectbox(
+            "double_slash_redirecting (Doble barra)", opciones_2_niveles, 
+            key="input_double_slash_redirecting",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+         
+    # Completar el resto de variables con el valor por defecto
+    for col in feature_columns:
+        if col not in input_data:
+            input_data[col] = 0.0
+
+    # Botón de predicción
+    if st.button("Predecir Sitio Web"):
+        # Convertir a DataFrame manteniendo estrictamente el orden original de entrenamiento
+        df_input = pd.DataFrame([input_data])[feature_columns]
+
+        # Seleccionar modelo
+        if opcion_modelo == "Random Forest":
+            modelo = rf_model
+            prediccion = modelo.predict(df_input)[0]
+            probabilidad = modelo.predict_proba(df_input).max()
+        else:
+            # Para la Red Neuronal
+            prob_nn = nn_optimized.predict(df_input)[0][0]
+            prediccion = 1.0 if prob_nn > 0.50 else 0.0
+            probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
+
+        # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
+        if prediccion == 1.0 and probabilidad >= 0.80:
+            st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
+        else:
+            st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
+
+        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
