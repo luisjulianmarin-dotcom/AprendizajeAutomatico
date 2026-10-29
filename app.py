@@ -328,7 +328,7 @@ def analizar_url(url):
 st.sidebar.header("Panel de Control")
 menu = st.sidebar.selectbox(
     "Selecciona una sección:",
-    ["Predicción por URL Directa","Variables Random x Modelo","Vista de Modelos","Vista General", "Resumen Estadístico", "Control de Nulos", "Visualizaciones"]
+    ["Predicción por URL Directa","Vista de Modelos","Vista General", "Resumen Estadístico", "Control de Nulos", "Visualizaciones"]
 )
 
 target_col = df.columns[-1]
@@ -455,167 +455,67 @@ elif menu == "Vista de Modelos":
 
     # Selector de modelo con nombres reales
     opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
-    st.subheader("Ingrese las 15 características más significativas de la URL / Sitio Web")
-    input_data = {}
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        input_data['sslfinal_state'] = st.selectbox("sslfinal_state (Certificado SSL)", [0.0, 0.5, 1.0], format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)"))
-        input_data['url_of_anchor'] = st.selectbox("url_of_anchor (Anclas de URL)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
-        input_data['prefix_suffix'] = st.selectbox("prefix_suffix (Guión en Dominio)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['having_sub_domain'] = st.selectbox("having_sub_domain (Subdominios)", [0.0, 0.5, 1.0], format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)"))
-        input_data['web_traffic'] = st.selectbox("web_traffic (Tráfico de Red)", [0.0, 0.5, 1.0], format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)"))
-        
-    with col2:
-        input_data['request_url'] = st.selectbox("request_url (Recursos Externos)", [0.0, 0.5, 1.0], format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)"))
-        input_data['links_in_tags'] = st.selectbox("links_in_tags (Enlaces en Metaetiquetas)", [0.0, 0.5, 1.0], format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)"))
-        input_data['sfh'] = st.selectbox("sfh (Manejo de Formularios)", [0.0, 0.5, 1.0], format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)"))
-        input_data['age_of_domain'] = st.selectbox("age_of_domain (Edad del Dominio)", [0.0, 0.5, 1.0], format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)"))
-        input_data['having_ip_address'] = st.selectbox("having_ip_address (Dirección IP)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        
-    with col3:
-        input_data['dnsrecord'] = st.selectbox("dnsrecord (Registro DNS)", [0.0, 1.0], format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)")
-        input_data['statistical_report'] = st.selectbox("statistical_report (API / PhishTank)", [0.0, 0.5, 1.0], format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)"))
-        input_data['shortining_service'] = st.selectbox("shortining_service (Acortadores)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['having_at_symbol'] = st.selectbox("having_at_symbol (Arroba @)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-        input_data['double_slash_redirecting'] = st.selectbox("double_slash_redirecting (Doble barra)", [0.0, 1.0], format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)")
-          
-    # Completar el resto de variables con el valor neutral por defecto (0.5)
-    for col in feature_columns:
-        if col not in input_data:
-            input_data[col] = 0.0
-
-    # Botón de predicción
-    if st.button("Predecir Sitio Web"):
-        # Convertir a DataFrame manteniendo estrictamente el orden original de entrenamiento
-        df_input = pd.DataFrame([input_data])[feature_columns]
-
-        # Seleccionar modelo
-        if opcion_modelo == "Random Forest":
-            modelo = rf_model
-            prediccion = modelo.predict(df_input)[0]
-            probabilidad = modelo.predict_proba(df_input).max()
-        else:
-            # Para la Red Neuronal
-            prob_nn = nn_optimized.predict(df_input)[0][0]
-            prediccion = 1.0 if prob_nn > 0.50 else 0.0
-            probabilidad = prob_nn if prediccion == 1.0 else (1.0 - prob_nn)
-
-        # Interpretar resultado (Asumiendo 1.0 = Legítimo, 0.0 = Phishing)
-        if prediccion == 1.0 and probabilidad >=0.80:
-            st.success(f"**Resultado:** ¡Sitio Web Legítimo! (Modelo: {opcion_modelo})")
-        else:
-            st.error(f"**Resultado:** ¡Alerta! Es un sitio potencial de **Phishing** (Modelo: {opcion_modelo})")
-
-        st.info(f"Confianza de la predicción: {probabilidad * 100:.2f}%")
-
-elif menu == "Variables Random x Modelo":
-    # Cargar modelos y columnas
-    rf_model = joblib.load("modelo_rf.joblib")
-    nn_optimized = tf.keras.models.load_model("modelo_nnrl_optimizado.keras")
-    feature_columns = joblib.load("columnas_features.joblib")
-
-    # Selector de modelo con nombres reales
-    opcion_modelo = st.selectbox("Seleccione el Algoritmo", ["Random Forest", "Red Neuronal"])
-    st.subheader("Ingrese las 15 características más significativas de la URL / Sitio Web")
+    st.subheader("Ingrese las 30 características de la URL / Sitio Web")
 
     # Definir las listas de opciones permitidas para cada variable específica
     opciones_3_niveles = [0.0, 0.5, 1.0]
     opciones_2_niveles = [0.0, 1.0]
 
-    # Diccionario de mapeo de opciones para cada variable
+    # Diccionario de mapeo de opciones para las 30 variables
     mapping_variables = {
-        'sslfinal_state': opciones_3_niveles,
-        'url_of_anchor': opciones_3_niveles,
-        'prefix_suffix': opciones_2_niveles,
-        'having_sub_domain': opciones_3_niveles,
-        'web_traffic': opciones_3_niveles,
-        'request_url': opciones_3_niveles,
-        'links_in_tags': opciones_3_niveles,
-        'sfh': opciones_3_niveles,
-        'age_of_domain': opciones_3_niveles,
         'having_ip_address': opciones_2_niveles,
-        'dnsrecord': opciones_2_niveles,
-        'statistical_report': opciones_3_niveles,
+        'url_length': opciones_3_niveles,
         'shortining_service': opciones_2_niveles,
         'having_at_symbol': opciones_2_niveles,
-        'double_slash_redirecting': opciones_2_niveles
+        'double_slash_redirecting': opciones_2_niveles,
+        'prefix_suffix': opciones_2_niveles,
+        'having_sub_domain': opciones_3_niveles,
+        'sslfinal_state': opciones_3_niveles,
+        'domain_registration_length': opciones_3_niveles,
+        'favicon': opciones_2_niveles,
+        'port': opciones_2_niveles,
+        'https_token': opciones_2_niveles,
+        'request_url': opciones_3_niveles,
+        'url_of_anchor': opciones_3_niveles,
+        'links_in_tags': opciones_3_niveles,
+        'sfh': opciones_3_niveles,
+        'submitting_to_email': opciones_2_niveles,
+        'abnormal_url': opciones_3_niveles,
+        'redirect': opciones_2_niveles,
+        'on_mouseover': opciones_2_niveles,
+        'rightclick': opciones_2_niveles,
+        'popupwindow': opciones_2_niveles,
+        'iframe': opciones_2_niveles,
+        'age_of_domain': opciones_3_niveles,
+        'dnsrecord': opciones_2_niveles,
+        'web_traffic': opciones_3_niveles,
+        'page_rank': opciones_2_niveles,
+        'google_index': opciones_2_niveles,
+        'links_pointing_to_page': opciones_3_niveles,
+        'statistical_report': opciones_2_niveles
     }
 
     # Botón para asignar valores aleatorios a todas las variables usando session_state
     if st.button("🎲 Llenar valores aleatoriamente"):
         for var_name, opciones in mapping_variables.items():
             st.session_state[f"input_{var_name}"] = random.choice(opciones)
-        st.success("¡Se han asignado valores aleatorios a los 15 campos!")
+        st.success("¡Se han asignado valores aleatorios a los 30 campos!")
         st.rerun()
 
     input_data = {}
     col1, col2, col3 = st.columns(3)
 
+    # --- COLUMNA 1 (10 variables) ---
     with col1:
-        input_data['sslfinal_state'] = st.selectbox(
-            "sslfinal_state (Certificado SSL)", opciones_3_niveles, 
-            key="input_sslfinal_state",
-            format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)")
-        )
-        input_data['url_of_anchor'] = st.selectbox(
-            "url_of_anchor (Anclas de URL)", opciones_3_niveles, 
-            key="input_url_of_anchor",
-            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
-        )
-        input_data['prefix_suffix'] = st.selectbox(
-            "prefix_suffix (Guión en Dominio)", opciones_2_niveles, 
-            key="input_prefix_suffix",
-            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
-        )
-        input_data['having_sub_domain'] = st.selectbox(
-            "having_sub_domain (Subdominios)", opciones_3_niveles, 
-            key="input_having_sub_domain",
-            format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)")
-        )
-        input_data['web_traffic'] = st.selectbox(
-            "web_traffic (Tráfico de Red)", opciones_3_niveles, 
-            key="input_web_traffic",
-            format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)")
-        )
-        
-    with col2:
-        input_data['request_url'] = st.selectbox(
-            "request_url (Recursos Externos)", opciones_3_niveles, 
-            key="input_request_url",
-            format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
-        )
-        input_data['links_in_tags'] = st.selectbox(
-            "links_in_tags (Enlaces en Metaetiquetas)", opciones_3_niveles, 
-            key="input_links_in_tags",
-            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)")
-        )
-        input_data['sfh'] = st.selectbox(
-            "sfh (Manejo de Formularios)", opciones_3_niveles, 
-            key="input_sfh",
-            format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)")
-        )
-        input_data['age_of_domain'] = st.selectbox(
-            "age_of_domain (Edad del Dominio)", opciones_3_niveles, 
-            key="input_age_of_domain",
-            format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)")
-        )
         input_data['having_ip_address'] = st.selectbox(
             "having_ip_address (Dirección IP)", opciones_2_niveles, 
             key="input_having_ip_address",
             format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
         )
-        
-    with col3:
-        input_data['dnsrecord'] = st.selectbox(
-            "dnsrecord (Registro DNS)", opciones_2_niveles, 
-            key="input_dnsrecord",
-            format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)"
-        )
-        input_data['statistical_report'] = st.selectbox(
-            "statistical_report (API / PhishTank)", opciones_3_niveles, 
-            key="input_statistical_report",
-            format_func=lambda x: "Phishing (0.0)" if x==0.0 else ("No Identificado (0.5)" if x==0.5 else "Legítimo (1.0)")
+        input_data['url_length'] = st.selectbox(
+            "url_length (Longitud de URL)", opciones_3_niveles, 
+            key="input_url_length",
+            format_func=lambda x: "Corta (0.0)" if x==0.0 else ("Moderada (0.5)" if x==0.5 else "Larga (1.0)")
         )
         input_data['shortining_service'] = st.selectbox(
             "shortining_service (Acortadores)", opciones_2_niveles, 
@@ -632,16 +532,145 @@ elif menu == "Variables Random x Modelo":
             key="input_double_slash_redirecting",
             format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
         )
-         
-    # Completar el resto de variables con el valor por defecto
-    for col in feature_columns:
-        if col not in input_data:
-            input_data[col] = 0.0
+        input_data['prefix_suffix'] = st.selectbox(
+            "prefix_suffix (Guión en Dominio)", opciones_2_niveles, 
+            key="input_prefix_suffix",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['having_sub_domain'] = st.selectbox(
+            "having_sub_domain (Subdominios)", opciones_3_niveles, 
+            key="input_having_sub_domain",
+            format_func=lambda x: "Múltiples (0.0)" if x==0.0 else ("Uno (0.5)" if x==0.5 else "Ninguno (1.0)")
+        )
+        input_data['sslfinal_state'] = st.selectbox(
+            "sslfinal_state (Certificado SSL)", opciones_3_niveles, 
+            key="input_sslfinal_state",
+            format_func=lambda x: "Inseguro (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['domain_registration_length'] = st.selectbox(
+            "domain_registration_length (Registro Dominio)", opciones_3_niveles, 
+            key="input_domain_registration_length",
+            format_func=lambda x: "Corto (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Largo (1.0)")
+        )
+        input_data['favicon'] = st.selectbox(
+            "favicon (Favicon Externo)", opciones_2_niveles, 
+            key="input_favicon",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        
+    # --- COLUMNA 2 (10 variables) ---
+    with col2:
+        input_data['port'] = st.selectbox(
+            "port (Puerto no estándar)", opciones_2_niveles, 
+            key="input_port",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['https_token'] = st.selectbox(
+            "https_token (HTTPS en Dominio)", opciones_2_niveles, 
+            key="input_https_token",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['request_url'] = st.selectbox(
+            "request_url (Recursos Externos)", opciones_3_niveles, 
+            key="input_request_url",
+            format_func=lambda x: "Excesivo (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['url_of_anchor'] = st.selectbox(
+            "url_of_anchor (Anclas de URL)", opciones_3_niveles, 
+            key="input_url_of_anchor",
+            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['links_in_tags'] = st.selectbox(
+            "links_in_tags (Enlaces en Metaetiquetas)", opciones_3_niveles, 
+            key="input_links_in_tags",
+            format_func=lambda x: "Sospechoso (0.0)" if x==0.0 else ("Incompleto (0.5)" if x==0.5 else "Seguro (1.0)")
+        )
+        input_data['sfh'] = st.selectbox(
+            "sfh (Manejo de Formularios)", opciones_3_niveles, 
+            key="input_sfh",
+            format_func=lambda x: "Vacío/Inseguro (0.0)" if x==0.0 else ("Diferente Dominio (0.5)" if x==0.5 else "Mismo Dominio (1.0)")
+        )
+        input_data['submitting_to_email'] = st.selectbox(
+            "submitting_to_email (Envío a Email)", opciones_2_niveles, 
+            key="input_submitting_to_email",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['abnormal_url'] = st.selectbox(
+            "abnormal_url (URL Anómala)", opciones_3_niveles, 
+            key="input_abnormal_url",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else ("Dudoso (0.5)" if x==0.5 else "No (1.0)")
+        )
+        input_data['redirect'] = st.selectbox(
+            "redirect (Redirecciones)", opciones_2_niveles, 
+            key="input_redirect",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['on_mouseover'] = st.selectbox(
+            "on_mouseover (Cambio en MouseOver)", opciones_2_niveles, 
+            key="input_on_mouseover",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        
+    # --- COLUMNA 3 (10 variables) ---
+    with col3:
+        input_data['rightclick'] = st.selectbox(
+            "rightclick (Deshabilitar Clic Derecho)", opciones_2_niveles, 
+            key="input_rightclick",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['popupwindow'] = st.selectbox(
+            "popupwindow (Ventanas emergentes)", opciones_2_niveles, 
+            key="input_popupwindow",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['iframe'] = st.selectbox(
+            "iframe (Uso de Iframe)", opciones_2_niveles, 
+            key="input_iframe",
+            format_func=lambda x: "Sí (0.0)" if x==0.0 else "No (1.0)"
+        )
+        input_data['age_of_domain'] = st.selectbox(
+            "age_of_domain (Edad del Dominio)", opciones_3_niveles, 
+            key="input_age_of_domain",
+            format_func=lambda x: "Reciente (0.0)" if x==0.0 else ("Moderado (0.5)" if x==0.5 else "Antiguo (1.0)")
+        )
+        input_data['dnsrecord'] = st.selectbox(
+            "dnsrecord (Registro DNS)", opciones_2_niveles, 
+            key="input_dnsrecord",
+            format_func=lambda x: "No Registrado (0.0)" if x==0.0 else "Registrado (1.0)"
+        )
+        input_data['web_traffic'] = st.selectbox(
+            "web_traffic (Tráfico de Red)", opciones_3_niveles, 
+            key="input_web_traffic",
+            format_func=lambda x: "Bajo/Nulo (0.0)" if x==0.0 else ("Medio (0.5)" if x==0.5 else "Alto (1.0)")
+        )
+        input_data['page_rank'] = st.selectbox(
+            "page_rank (PageRank)", opciones_2_niveles, 
+            key="input_page_rank",
+            format_func=lambda x: "Bajo (0.0)" if x==0.0 else "Alto (1.0)"
+        )
+        input_data['google_index'] = st.selectbox(
+            "google_index (Indexado en Google)", opciones_2_niveles, 
+            key="input_google_index",
+            format_func=lambda x: "No (0.0)" if x==0.0 else "Sí (1.0)"
+        )
+        input_data['links_pointing_to_page'] = st.selectbox(
+            "links_pointing_to_page (Enlaces entrantes)", opciones_3_niveles, 
+            key="input_links_pointing_to_page",
+            format_func=lambda x: "Ninguno (0.0)" if x==0.0 else ("Algunos (0.5)" if x==0.5 else "Muchos (1.0)")
+        )
+        input_data['statistical_report'] = st.selectbox(
+            "statistical_report (API / PhishTank)", opciones_2_niveles, 
+            key="input_statistical_report",
+            format_func=lambda x: "Phishing (0.0)" if x==0.0 else "Legítimo (1.0)"
+        )
 
     # Botón de predicción
     if st.button("Predecir Sitio Web"):
         # Convertir a DataFrame manteniendo estrictamente el orden original de entrenamiento
-        df_input = pd.DataFrame([input_data])[feature_columns]
+        if 'feature_columns' in locals() and feature_columns is not None:
+            df_input = pd.DataFrame([input_data])[feature_columns]
+        else:
+            df_input = pd.DataFrame([input_data])
 
         # Seleccionar modelo
         if opcion_modelo == "Random Forest":
